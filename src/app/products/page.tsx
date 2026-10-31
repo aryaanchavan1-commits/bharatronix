@@ -8,9 +8,9 @@ import { CatalogBrowser } from "@/components/catalog-browser";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "ERP Store — Bharatronix",
+  title: "ERP Store — Cronaierp",
   description:
-    "Browse and buy Bharatronix ERP suites: manufacturing, retail POS, finance & GST, HR & payroll. Instant license delivery.",
+    "Browse and buy Cronaierp ERP suites: manufacturing, retail POS, finance & GST, HR & payroll. Instant license delivery.",
 };
 
 const assurances = [
@@ -30,7 +30,7 @@ export default async function ProductsPage() {
         <div className="absolute -right-24 top-0 h-72 w-72 rounded-full bg-saffron-500/15 blur-[110px]" />
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-saffron-400">
-            Bharatronix ERP Store
+            Cronaierp ERP Store
           </p>
           <h1 className="font-display mt-3 text-3xl font-bold tracking-tight sm:text-5xl">
             Every suite. One transparent price.

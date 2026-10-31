@@ -13,7 +13,7 @@ const faqs = [
     a: "Yes — free of cost on every plan. Our migration team moves your masters, opening balances, stock and historical transactions with zero data loss, and runs parallel validation before go-live.",
   },
   {
-    q: "Is Bharatronix GST-compliant for Indian businesses?",
+    q: "Is Cronaierp GST-compliant for Indian businesses?",
     a: "Completely. Every suite is GST-native: GSTR-1/3B/9 reports, e-Invoice (IRN), e-Way Bills, TDS/TCS and MCA-compliant audit trails. We ship compliance updates before every statutory deadline.",
   },
   {

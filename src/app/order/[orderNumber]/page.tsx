@@ -6,11 +6,13 @@ import { eq } from "drizzle-orm";
 import {
   ArrowRight,
   BadgeCheck,
+  Clock,
   Copy,
   Headset,
   KeyRound,
   Mail,
   Rocket,
+  XCircle,
 } from "lucide-react";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
@@ -20,7 +22,7 @@ import { Reveal } from "@/components/reveal";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Order Confirmed — Bharatronix",
+  title: "Order Confirmed — Cronaierp",
 };
 
 type Props = { params: Promise<{ orderNumber: string }> };
@@ -33,6 +35,10 @@ export default async function OrderPage({ params }: Props) {
     .where(eq(orders.orderNumber, orderNumber));
   if (!order) notFound();
 
+  // license keys are revealed only once payment is captured (or legacy demo orders)
+  const paid = order.status === "paid";
+  const authorized = order.status === "authorized";
+
   return (
     <section className="relative overflow-hidden bg-ink-950 py-16 text-white">
       <div className="bg-blueprint absolute inset-0" />
@@ -40,17 +46,74 @@ export default async function OrderPage({ params }: Props) {
       <div className="relative mx-auto max-w-4xl px-4 sm:px-6">
         <Reveal>
           <div className="text-center">
-            <span className="relative mx-auto grid h-20 w-20 place-items-center rounded-full bg-teal-600/20 text-teal-glow">
-              <span className="animate-pulse-ring absolute inset-0 rounded-full bg-teal-600/30" />
-              <BadgeCheck className="h-10 w-10" />
+            <span
+              className={`relative mx-auto grid h-20 w-20 place-items-center rounded-full ${
+                order.status === "failed" || order.status === "refunded"
+                  ? "bg-red-500/20 text-red-400"
+                  : paid
+                    ? "bg-teal-600/20 text-teal-glow"
+                    : "bg-saffron-500/15 text-saffron-400"
+              }`}
+            >
+              {order.status === "failed" || order.status === "refunded" ? (
+                <XCircle className="h-10 w-10" />
+              ) : paid ? (
+                <>
+                  <span className="animate-pulse-ring absolute inset-0 rounded-full bg-teal-600/30" />
+                  <BadgeCheck className="h-10 w-10" />
+                </>
+              ) : (
+                <Clock className="h-10 w-10" />
+              )}
             </span>
+
             <h1 className="font-display mt-6 text-3xl font-bold tracking-tight sm:text-5xl">
-              Order confirmed! 🎉
+              {order.status === "failed"
+                ? "Payment declined"
+                : order.status === "refunded"
+                  ? "Order refunded"
+                  : paid
+                    ? "Order confirmed! 🎉"
+                    : order.status === "pending"
+                      ? "Finish your payment"
+                      : "Payment authorized"}
             </h1>
-            <p className="mt-3 text-slate-300">
-              Thank you, <span className="font-bold text-white">{order.customerName}</span>. Your
-              Bharatronix licenses are ready.
-            </p>
+
+            {paid ? (
+              <p className="mt-3 text-slate-300">
+                Thank you, <span className="font-bold text-white">{order.customerName}</span>. Your
+                Cronaierp licenses are ready.
+              </p>
+            ) : authorized ? (
+              <p className="mt-3 max-w-xl text-slate-300">
+                Your card is authorized on Stripe — pending our standard review window before the
+                charge is captured. You&apos;ll be redirected here automatically; keys unlock as soon
+                as capture completes.
+              </p>
+            ) : order.status === "pending" ? (
+              <p className="mt-3 max-w-xl text-slate-300">
+                Your payment didn&apos;t go through yet. We automatically re-issue a secure payment
+                link with our retry schedule (1h / 4h / 12h). You can also try again from{" "}
+                <Link href="/checkout" className="font-bold text-saffron-400 underline">
+                  checkout
+                </Link>
+                .
+              </p>
+            ) : order.status === "refunded" ? (
+              <p className="mt-3 max-w-xl text-slate-300">
+                This order was disputed and refunded in full. Nothing was charged beyond the
+                original authorization.
+              </p>
+            ) : (
+              <p className="mt-3 max-w-xl text-slate-300">
+                All payment attempts were declined. Please check your card or try a different one at{" "}
+                <Link href="/checkout" className="font-bold text-saffron-400 underline">
+                  checkout
+                </Link>
+                .
+              </p>
+            )}
+
             <p className="mt-4 inline-block rounded-lg border border-white/15 bg-white/5 px-5 py-2 font-mono text-sm font-bold tracking-widest text-saffron-400">
               {order.orderNumber}
             </p>
@@ -62,18 +125,26 @@ export default async function OrderPage({ params }: Props) {
             <h2 className="font-display flex items-center gap-2 text-xl font-bold">
               <KeyRound className="h-5 w-5 text-saffron-400" /> Your license keys
             </h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Also sent to <span className="font-bold text-slate-200">{order.email}</span>. Enter a key in the
-              installer to activate each license.
-            </p>
-            <ul className="mt-6 space-y-4">
+            {paid ? (
+              <p className="mt-1 text-sm text-slate-400">
+                Also sent to <span className="font-bold text-slate-200">{order.email}</span>. Enter a key in the
+                installer to activate each license.
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-slate-400">
+                License keys are issued once payment is captured. This page updates automatically —
+                we&apos;ll also email you at{" "}
+                <span className="font-bold text-slate-200">{order.email}</span>.
+              </p>
+            )}
+            <ul className={`mt-6 gap-4 ${paid ? "space-y-4" : "hidden"}`}>
               {order.items.map((item, i) => (
                 <li
                   key={i}
                   className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-4 sm:flex-row sm:items-center"
                 >
                   <span className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-ink-950">
-                    <Image src={item.image} alt={item.name} fill sizes="80px" className="object-cover" />
+                    <Image src={item.image ?? "/images/product-manufacturing.jpg"} alt={item.name} fill sizes="80px" className="object-cover" />
                   </span>
                   <span className="flex-1">
                     <span className="block font-display font-bold">{item.name}</span>
@@ -82,7 +153,7 @@ export default async function OrderPage({ params }: Props) {
                     </span>
                   </span>
                   <span className="flex items-center gap-2 rounded-lg border border-saffron-500/40 bg-saffron-500/10 px-4 py-2.5 font-mono text-sm font-bold tracking-wider text-saffron-400">
-                    {item.licenseKey}
+                    {item.licenseKey ?? ""}
                     <Copy className="h-3.5 w-3.5 opacity-60" />
                   </span>
                 </li>
@@ -91,13 +162,13 @@ export default async function OrderPage({ params }: Props) {
 
             <dl className="mt-6 space-y-2 border-t border-white/10 pt-5 text-sm font-semibold">
               <div className="flex justify-between text-slate-400">
-                <dt>Subtotal</dt><dd>{formatINR(order.subtotal)}</dd>
+                <dt>Subtotal</dt><dd>{formatINR(order.subtotal ?? 0)}</dd>
               </div>
               <div className="flex justify-between text-slate-400">
-                <dt>GST (18%)</dt><dd>{formatINR(order.gst)}</dd>
+                <dt>GST (18%)</dt><dd>{formatINR(order.gst ?? 0)}</dd>
               </div>
               <div className="flex justify-between font-display text-lg font-bold text-white">
-                <dt>Total paid</dt><dd>{formatINR(order.total)}</dd>
+                <dt>{paid ? "Total paid" : "Total on authorization"}</dt><dd>{formatINR(order.total)}</dd>
               </div>
             </dl>
           </div>
@@ -107,8 +178,8 @@ export default async function OrderPage({ params }: Props) {
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {[
               { icon: Rocket, title: "Onboarding call", desc: "Our team will call you within 1 business day to plan your go-live." },
-              { icon: Mail, title: "Check your inbox", desc: "Installers, keys and your GST invoice are on the way to your email." },
-              { icon: Headset, title: "Need help now?", desc: "Call +91 98000 00000 or write to support@bharatronix.in." },
+              { icon: Mail, title: "Check your inbox", desc: "Installers, keys and your GST invoice arrive once payment is captured." },
+              { icon: Headset, title: "Need help now?", desc: "Call +91 98000 00000 or write to support@cronaierp.in." },
             ].map((s) => (
               <div key={s.title} className="rounded-xl border border-white/10 bg-white/5 p-5">
                 <s.icon className="h-6 w-6 text-teal-glow" />

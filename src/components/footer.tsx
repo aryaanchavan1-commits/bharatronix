@@ -12,15 +12,15 @@ export function Footer() {
                 <Boxes className="h-5 w-5" />
               </span>
               <span className="font-display text-xl font-bold text-white">
-                Bhara<span className="text-saffron-400">tronix</span>
+                Cronaierp
               </span>
             </div>
             <p className="mt-4 text-sm leading-relaxed">
               Enterprise-grade ERP software, built in India for the world.
-              Founded by Parth Ambre &amp; Aryan Chavan.
+              Instant license delivery, one platform, one price.
             </p>
             <p className="mt-4 flex items-center gap-2 text-xs font-semibold text-teal-glow">
-              <ShieldCheck className="h-4 w-4" /> ISO 27001 · Made in India 🇮🇳
+              <ShieldCheck className="h-4 w-4" /> Secure buyback · GST invoices
             </p>
           </div>
 
@@ -51,11 +51,11 @@ export function Footer() {
               Company
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li><Link href="/#founders" className="hover:text-saffron-400">Our Founders</Link></li>
-              <li><Link href="/#platform" className="hover:text-saffron-400">Platform</Link></li>
-              <li><Link href="/#testimonials" className="hover:text-saffron-400">Customer Stories</Link></li>
-              <li><Link href="/#faq" className="hover:text-saffron-400">FAQ</Link></li>
-              <li><Link href="/products" className="hover:text-saffron-400">ERP Store</Link></li>
+              <li></li>
+              <li></li>
+              <li></li>
+              <li></li>
+              <li></li>
             </ul>
           </div>
 
@@ -66,7 +66,7 @@ export function Footer() {
             <ul className="mt-4 space-y-3 text-sm">
               <li className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron-400" />
-                Bharatronix HQ, Hinjawadi Phase 2, Pune, Maharashtra 411057
+                Cronaierp HQ, Hinjawadi Phase 2, Pune, Maharashtra 411057
               </li>
               <li className="flex items-center gap-2.5">
                 <PhoneCall className="h-4 w-4 shrink-0 text-saffron-400" />
@@ -74,14 +74,14 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 shrink-0 text-saffron-400" />
-                sales@bharatronix.in
+                sales@cronaierp.in
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs sm:flex-row">
-          <p>© {new Date().getFullYear()} Bharatronix Technologies Pvt. Ltd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Cronaierp Technologies Pvt. Ltd. All rights reserved.</p>
           <p>
             GSTIN 27AABCB1234F1Z5 · CIN U72900PN2024PTC000001
           </p>

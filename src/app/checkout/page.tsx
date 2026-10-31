@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowLeft,
@@ -14,13 +13,13 @@ import {
   Phone,
   ShieldCheck,
   User,
+  CreditCard,
 } from "lucide-react";
 import { useCart } from "@/components/cart-provider";
 import { formatINR } from "@/lib/format";
 
 export default function CheckoutPage() {
   const { items, subtotal, clear } = useCart();
-  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -46,14 +45,25 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
           items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
+          customer: {
+            name: form.customerName,
+            email: form.email,
+            phone: form.phone,
+            company: form.company,
+            address: form.gstin,
+          },
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Order failed. Please try again.");
-      clear();
-      router.push(`/order/${data.orderNumber}`);
+      // Stripe hosts the payment page: card entry, 3DS and CVV checks happen there.
+      if (data.checkoutUrl) {
+        clear();
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+      window.location.href = `/order/${data.orderNumber}`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setSubmitting(false);
@@ -94,7 +104,7 @@ export default function CheckoutPage() {
         </h1>
         <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-slate-500">
           <Lock className="h-4 w-4 text-teal-600" />
-          License keys are generated instantly after confirmation
+          Card details are entered on Stripe — we never see your card number
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_1fr]">
@@ -141,12 +151,13 @@ export default function CheckoutPage() {
 
             <div className="rounded-lg border border-teal-600/20 bg-teal-600/5 p-4 text-xs font-semibold leading-relaxed text-slate-600">
               <p className="flex items-center gap-2 font-bold text-teal-700">
-                <ShieldCheck className="h-4 w-4" /> What happens next
+                <ShieldCheck className="h-4 w-4" /> How payment works
               </p>
               <p className="mt-1.5">
-                This is a demo checkout — no payment is charged. Your order is confirmed
-                instantly, license keys are issued on the confirmation page, and our
-                onboarding team contacts you within one business day.
+                Your card is authorized on Stripe (not charged yet). We capture the payment
+                after a short review window — chargebacks during that window are refunded
+                automatically. 3D Secure is required for larger orders. License keys are
+                delivered on your order page.
               </p>
             </div>
 
@@ -163,11 +174,11 @@ export default function CheckoutPage() {
             >
               {submitting ? (
                 <>
-                  <LoaderCircle className="h-4 w-4 animate-spin" /> Confirming your order…
+                  <LoaderCircle className="h-4 w-4 animate-spin" /> Redirecting to Stripe…
                 </>
               ) : (
                 <>
-                  <Lock className="h-4 w-4" /> Confirm Order · {formatINR(total)}
+                  <CreditCard className="h-4 w-4" /> Pay with Stripe · {formatINR(total)}
                 </>
               )}
             </button>

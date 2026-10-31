@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { AiAssistant } from "@/components/ai-assistant";
 import { Space_Grotesk, Manrope } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart-provider";
@@ -17,9 +18,9 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Bharatronix — ERP Software Store | Built in India, for the World",
+  title: "Cronaierp — ERP Software Store | Built in India, for the World",
   description:
-    "Buy enterprise-grade ERP software online. Manufacturing, Retail POS, Finance & GST, HR & Payroll suites by Bharatronix — founded by Parth Ambre & Aryan Chavan.",
+    "Buy enterprise-grade ERP software online. Manufacturing, Retail POS, Finance & GST, HR & Payroll suites by Cronaierp — built by Parth Ambre & Aryan Chavan.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -22,9 +22,9 @@ async function getProduct(slug: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
-  if (!product) return { title: "Product not found — Bharatronix" };
+  if (!product) return { title: "Product not found — Cronaierp" };
   return {
-    title: `${product.name} — Bharatronix ERP Store`,
+    title: `${product.name} — Cronaierp ERP Store`,
     description: product.tagline,
   };
 }

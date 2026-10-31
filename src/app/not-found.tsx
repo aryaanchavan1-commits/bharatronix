@@ -18,7 +18,7 @@ export default function NotFound() {
           href="/"
           className="mt-8 inline-flex items-center gap-2 rounded-lg bg-saffron-500 px-6 py-3 text-sm font-bold text-white shadow-xl shadow-saffron-500/25 transition-all hover:bg-saffron-600"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Bharatronix home
+          <ArrowLeft className="h-4 w-4" /> Back to Cronaierp home
         </Link>
       </div>
     </section>

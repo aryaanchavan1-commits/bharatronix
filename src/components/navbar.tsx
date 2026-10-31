@@ -8,7 +8,7 @@ import { useCart } from "./cart-provider";
 const links = [
   { href: "/products", label: "ERP Store" },
   { href: "/#platform", label: "Platform" },
-  { href: "/#founders", label: "Founders" },
+  { href: "/founders", label: "Founders" },
   { href: "/#faq", label: "FAQ" },
 ];
 
@@ -24,7 +24,7 @@ export function Navbar() {
             <Boxes className="h-5 w-5" />
           </span>
           <span className="font-display text-xl font-bold tracking-tight text-white">
-            Bhara<span className="text-saffron-400">tronix</span>
+            Cronaierp
           </span>
         </Link>
 

@@ -77,8 +77,8 @@ const founders = [
     name: "Parth Ambre",
     role: "Founder & CEO",
     image: "/images/founder-parth.jpg",
-    bio: "Parth spent a decade watching Indian factories and traders drown in disconnected software. He founded Bharatronix to give every business — from a Pune job-work shop to a 500-store retail chain — one honest, affordable ERP with world-class engineering.",
-    quote: "Enterprise software shouldn't need an enterprise budget. That's the whole point of Bharatronix.",
+    bio: "Parth spent a decade watching Indian factories and traders drown in disconnected software. He founded Cronaierp to give every business — from a Pune job-work shop to a 500-store retail chain — one honest, affordable ERP with world-class engineering.",
+    quote: "Enterprise software shouldn't need an enterprise budget. That's the whole point of Cronaierp.",
     focus: ["Product Vision", "Enterprise Sales", "Customer Success"],
     accent: "saffron",
   },
@@ -86,7 +86,7 @@ const founders = [
     name: "Aryan Chavan",
     role: "Co-Founder & CTO",
     image: "/images/founder-aryan.jpg",
-    bio: "Aryan architected the Bharatronix platform from the first commit — a modular, API-first core that scales from 5 users to 50,000. He leads the engineering and AI teams building forecasting, automation and the real-time analytics engine.",
+    bio: "Aryan architected the Cronaierp platform from the first commit — a modular, API-first core that scales from 5 users to 50,000. He leads the engineering and AI teams building forecasting, automation and the real-time analytics engine.",
     quote: "We engineer for the shop floor first. If it works on a factory PC in a power cut, it works everywhere.",
     focus: ["Platform Architecture", "AI & Automation", "Cloud Infrastructure"],
     accent: "teal",
@@ -194,7 +194,7 @@ export default async function HomePage() {
                   One live core.
                 </h2>
                 <p className="mt-4 leading-relaxed text-slate-400">
-                  Every Bharatronix suite runs on the same modular core — so a sale
+                  Every Cronaierp suite runs on the same modular core — so a sale
                   updates stock, stock triggers production, production posts to the
                   ledger, and payroll closes the loop. No integrations to maintain,
                   no data silos, no reconciliation spreadsheets.
@@ -280,13 +280,13 @@ export default async function HomePage() {
           <Reveal>
             <div className="text-center">
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-saffron-400">
-                The people behind Bharatronix
+                The people behind Cronaierp
               </p>
               <h2 className="font-display mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
                 Built by founders who answer your calls
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-slate-400">
-                Bharatronix was founded in Pune with one belief: Indian businesses deserve
+                Cronaierp was founded in Pune with one belief: Indian businesses deserve
                 world-class ERP without world-enterprise pricing.
               </p>
             </div>
@@ -299,7 +299,7 @@ export default async function HomePage() {
                   <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
                     <Image
                       src={f.image}
-                      alt={`${f.name}, ${f.role} of Bharatronix`}
+                      alt={`${f.name}, ${f.role} of Cronaierp`}
                       fill
                       sizes="(max-width: 768px) 100vw, 50vw"
                       className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
@@ -315,7 +315,7 @@ export default async function HomePage() {
                     <div className="absolute bottom-4 left-5">
                       <h3 className="font-display text-2xl font-bold">{f.name}</h3>
                       <p className={`text-sm font-bold ${f.accent === "saffron" ? "text-saffron-400" : "text-teal-glow"}`}>
-                        {f.role}, Bharatronix
+                        {f.role}, Cronaierp
                       </p>
                     </div>
                   </div>
