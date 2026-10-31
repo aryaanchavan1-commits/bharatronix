@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Boxes, ShoppingCart, Menu, X, PhoneCall } from "lucide-react";
+import { Boxes, ShoppingCart, Menu, X } from "lucide-react";
 import { useCart } from "./cart-provider";
 
 const links = [
@@ -40,13 +40,6 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a
-            href="tel:+919800000000"
-            className="hidden items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-slate-300 transition-colors hover:text-teal-glow lg:flex"
-          >
-            <PhoneCall className="h-4 w-4" />
-            +91 98000 00000
-          </a>
           <Link
             href="/cart"
             className="relative flex items-center gap-2 rounded-lg bg-saffron-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-saffron-500/25 transition-all hover:-translate-y-0.5 hover:bg-saffron-600"

@@ -72,27 +72,6 @@ const steps = [
   },
 ];
 
-const testimonials = [
-  {
-    quote: "We moved 3 factories from Tally + spreadsheets to ManufPro in 11 days. Month-end closing went from 9 days to 2. The shop-floor dashboards alone paid for the license.",
-    name: "Rajesh Kulkarni",
-    role: "Director, Deccan Auto Components",
-    product: "ManufPro",
-  },
-  {
-    quote: "42 outlets, one stock view. RetailOne's offline billing saved us during network outages, and the Flipkart sync ended our double-entry nightmare.",
-    name: "Sneha Agarwal",
-    role: "COO, MetroMart Retail",
-    product: "RetailOne",
-  },
-  {
-    quote: "As a practising CA I recommend FinCore to every client. GSTR filing that used to eat a week now takes an afternoon, and the audit trail is spotless.",
-    name: "CA Amit Deshpande",
-    role: "Partner, Deshpande & Associates",
-    product: "FinCore",
-  },
-];
-
 export default async function HomePage() {
   const catalog = await db.select().from(products).orderBy(asc(products.price));
 
@@ -245,47 +224,6 @@ export default async function HomePage() {
                   <h3 className="font-display mt-5 text-lg font-bold text-ink-900">{s.title}</h3>
                   <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-slate-600">{s.desc}</p>
                 </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="bg-dots-light py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <Reveal>
-            <div className="text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-saffron-600">
-                Customer stories
-              </p>
-              <h2 className="font-display mt-3 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
-                Real businesses. Measurable results.
-              </h2>
-            </div>
-          </Reveal>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {testimonials.map((t, i) => (
-              <Reveal key={t.name} delay={i * 110}>
-                <figure className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-                  <div className="flex gap-1 text-amber-400">
-                    {Array.from({ length: 5 }).map((_, s) => (
-                      <Star key={s} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-slate-700">
-                    “{t.quote}”
-                  </blockquote>
-                  <figcaption className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                    <div>
-                      <p className="font-display text-sm font-bold text-ink-900">{t.name}</p>
-                      <p className="text-xs font-semibold text-slate-500">{t.role}</p>
-                    </div>
-                    <span className="rounded-full bg-ink-900 px-3 py-1 text-[11px] font-bold text-saffron-400">
-                      {t.product}
-                    </span>
-                  </figcaption>
-                </figure>
               </Reveal>
             ))}
           </div>
