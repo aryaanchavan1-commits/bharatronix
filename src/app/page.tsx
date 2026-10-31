@@ -72,27 +72,6 @@ const steps = [
   },
 ];
 
-const founders = [
-  {
-    name: "Parth Ambre",
-    role: "Founder & CEO",
-    image: "/images/founder-parth.jpg",
-    bio: "Parth spent a decade watching Indian factories and traders drown in disconnected software. He founded Cronaierp to give every business — from a Pune job-work shop to a 500-store retail chain — one honest, affordable ERP with world-class engineering.",
-    quote: "Enterprise software shouldn't need an enterprise budget. That's the whole point of Cronaierp.",
-    focus: ["Product Vision", "Enterprise Sales", "Customer Success"],
-    accent: "saffron",
-  },
-  {
-    name: "Aryan Chavan",
-    role: "Co-Founder & CTO",
-    image: "/images/founder-aryan.jpg",
-    bio: "Aryan architected the Cronaierp platform from the first commit — a modular, API-first core that scales from 5 users to 50,000. He leads the engineering and AI teams building forecasting, automation and the real-time analytics engine.",
-    quote: "We engineer for the shop floor first. If it works on a factory PC in a power cut, it works everywhere.",
-    focus: ["Platform Architecture", "AI & Automation", "Cloud Infrastructure"],
-    accent: "teal",
-  },
-];
-
 const testimonials = [
   {
     quote: "We moved 3 factories from Tally + spreadsheets to ManufPro in 11 days. Month-end closing went from 9 days to 2. The shop-floor dashboards alone paid for the license.",
@@ -266,81 +245,6 @@ export default async function HomePage() {
                   <h3 className="font-display mt-5 text-lg font-bold text-ink-900">{s.title}</h3>
                   <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-slate-600">{s.desc}</p>
                 </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Founders */}
-      <section id="founders" className="relative overflow-hidden bg-ink-950 py-20 text-white">
-        <div className="bg-blueprint absolute inset-0" />
-        <div className="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-saffron-500/10 blur-[130px]" />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal>
-            <div className="text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-saffron-400">
-                The people behind Cronaierp
-              </p>
-              <h2 className="font-display mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-                Built by founders who answer your calls
-              </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-slate-400">
-                Cronaierp was founded in Pune with one belief: Indian businesses deserve
-                world-class ERP without world-enterprise pricing.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="mt-12 grid gap-8 md:grid-cols-2">
-            {founders.map((f, i) => (
-              <Reveal key={f.name} delay={i * 140}>
-                <article className="group h-full overflow-hidden rounded-2xl border border-white/10 bg-ink-900/80 transition-all duration-300 hover:-translate-y-1.5 hover:border-saffron-500/40 hover:shadow-2xl hover:shadow-saffron-500/10">
-                  <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
-                    <Image
-                      src={f.image}
-                      alt={`${f.name}, ${f.role} of Cronaierp`}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-transparent" />
-                    <span
-                      className={`absolute left-4 top-4 rounded-md px-3 py-1 text-[11px] font-extrabold uppercase tracking-widest text-white shadow-lg ${
-                        f.accent === "saffron" ? "bg-saffron-500" : "bg-teal-600"
-                      }`}
-                    >
-                      {f.role}
-                    </span>
-                    <div className="absolute bottom-4 left-5">
-                      <h3 className="font-display text-2xl font-bold">{f.name}</h3>
-                      <p className={`text-sm font-bold ${f.accent === "saffron" ? "text-saffron-400" : "text-teal-glow"}`}>
-                        {f.role}, Cronaierp
-                      </p>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <p className="text-sm leading-relaxed text-slate-300">{f.bio}</p>
-                    <blockquote className="mt-4 flex gap-3 rounded-lg border-l-4 border-saffron-500 bg-white/5 p-4">
-                      <Quote className="h-5 w-5 shrink-0 text-saffron-400" />
-                      <p className="text-sm font-semibold italic leading-relaxed text-slate-200">
-                        “{f.quote}”
-                      </p>
-                    </blockquote>
-                    <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex flex-wrap gap-2">
-                        {f.focus.map((tag) => (
-                          <span key={tag} className="rounded-full border border-white/15 px-3 py-1 text-[11px] font-bold text-slate-300">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <span className="flex items-center gap-1.5 text-xs font-bold text-slate-400 transition-colors hover:text-teal-glow">
-                        <ExternalLink className="h-4 w-4" /> LinkedIn
-                      </span>
-                    </div>
-                  </div>
-                </article>
               </Reveal>
             ))}
           </div>

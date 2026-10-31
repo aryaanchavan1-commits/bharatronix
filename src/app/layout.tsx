@@ -20,7 +20,7 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Cronaierp — ERP Software Store | Built in India, for the World",
   description:
-    "Buy enterprise-grade ERP software online. Manufacturing, Retail POS, Finance & GST, HR & Payroll suites by Cronaierp — built by Parth Ambre & Aryan Chavan.",
+    "Buy enterprise-grade ERP software online. Manufacturing, Retail POS, Finance & GST, HR & Payroll suites by Cronaierp — instant license delivery, secure checkout.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
