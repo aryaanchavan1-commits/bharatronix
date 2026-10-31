@@ -12,7 +12,7 @@ export function Footer() {
                 <Boxes className="h-5 w-5" />
               </span>
               <span className="font-display text-xl font-bold text-white">
-                Cronaierp
+                Bharatrontech
               </span>
             </div>
             <p className="mt-4 text-sm leading-relaxed">
@@ -66,7 +66,7 @@ export function Footer() {
             <ul className="mt-4 space-y-3 text-sm">
               <li className="flex items-start gap-2.5">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron-400" />
-                Cronaierp HQ, Hinjawadi Phase 2, Pune, Maharashtra 411057
+                Bharatrontech HQ, Hinjawadi Phase 2, Pune, Maharashtra 411057
               </li>
               <li className="flex items-center gap-2.5">
                 <PhoneCall className="h-4 w-4 shrink-0 text-saffron-400" />
@@ -74,14 +74,14 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 shrink-0 text-saffron-400" />
-                sales@cronaierp.in
+                sales@bharatrontech.in
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs sm:flex-row">
-          <p>© {new Date().getFullYear()} Cronaierp Technologies Pvt. Ltd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Bharatrontech Technologies Pvt. Ltd. All rights reserved.</p>
           <p>
             GSTIN 27AABCB1234F1Z5 · CIN U72900PN2024PTC000001
           </p>

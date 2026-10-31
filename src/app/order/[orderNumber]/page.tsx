@@ -22,7 +22,7 @@ import { Reveal } from "@/components/reveal";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Order Confirmed — Cronaierp",
+  title: "Order Confirmed — Bharatrontech",
 };
 
 type Props = { params: Promise<{ orderNumber: string }> };
@@ -82,7 +82,7 @@ export default async function OrderPage({ params }: Props) {
             {paid ? (
               <p className="mt-3 text-slate-300">
                 Thank you, <span className="font-bold text-white">{order.customerName}</span>. Your
-                Cronaierp licenses are ready.
+                Bharatrontech licenses are ready.
               </p>
             ) : authorized ? (
               <p className="mt-3 max-w-xl text-slate-300">
@@ -179,7 +179,7 @@ export default async function OrderPage({ params }: Props) {
             {[
               { icon: Rocket, title: "Onboarding call", desc: "Our team will call you within 1 business day to plan your go-live." },
               { icon: Mail, title: "Check your inbox", desc: "Installers, keys and your GST invoice arrive once payment is captured." },
-              { icon: Headset, title: "Need help now?", desc: "Call +91 98000 00000 or write to support@cronaierp.in." },
+              { icon: Headset, title: "Need help now?", desc: "Call +91 98000 00000 or write to support@bharatrontech.in." },
             ].map((s) => (
               <div key={s.title} className="rounded-xl border border-white/10 bg-white/5 p-5">
                 <s.icon className="h-6 w-6 text-teal-glow" />

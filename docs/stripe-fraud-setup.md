@@ -1,4 +1,4 @@
-# Stripe fraud & checkout-ops setup (Cronaierp)
+# Stripe fraud & checkout-ops setup (Bharatrontech)
 
 Application code implements the delayed-capture lifecycle, the IP velocity rule,
 the 3 purchase attempts / 24h cap, the retry ladder (1h / 4h / 12h), dispute

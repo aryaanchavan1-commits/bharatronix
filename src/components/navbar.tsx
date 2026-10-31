@@ -23,7 +23,7 @@ export function Navbar() {
             <Boxes className="h-5 w-5" />
           </span>
           <span className="font-display text-xl font-bold tracking-tight text-white">
-            Cronaierp
+            Bharatrontech
           </span>
         </Link>
 

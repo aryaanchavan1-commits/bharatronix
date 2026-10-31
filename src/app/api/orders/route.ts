@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     const ipVelocityCount = ipVelocityResults[0] ? Number(ipVelocityResults[0].count) : 0;
     if (ipVelocityCount >= IP_VELOCITY_LIMIT) {
       return NextResponse.json(
-        { error: "Too many purchase attempts from this connection. Please contact support@cronaierp.in." },
+        { error: "Too many purchase attempts from this connection. Please contact support@bharatrontech.in." },
         { status: 429 }
       );
     }
@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
       line_items: lineItems.map((li) => ({
         price_data: {
           currency: "inr",
-          product_data: { name: li.name, description: "Cronaierp annual license" },
+          product_data: { name: li.name, description: "Bharatrontech annual license" },
           unit_amount: li.price,
         },
         quantity: li.qty,
@@ -204,8 +204,8 @@ export async function POST(req: NextRequest) {
       },
       payment_intent_data: {
         capture_method: "manual",
-        description: `Cronaierp ${orderNumber}`,
-        statement_descriptor_suffix: "CRONAIERP",
+        description: `Bharatrontech ${orderNumber}`,
+        statement_descriptor_suffix: "BHARATRONTECH",
         metadata: {
           order_id: orderNumber,
           customer_email: customer.email.trim(),

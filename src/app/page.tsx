@@ -152,7 +152,7 @@ export default async function HomePage() {
                   One live core.
                 </h2>
                 <p className="mt-4 leading-relaxed text-slate-400">
-                  Every Cronaierp suite runs on the same modular core — so a sale
+                  Every Bharatrontech suite runs on the same modular core — so a sale
                   updates stock, stock triggers production, production posts to the
                   ledger, and payroll closes the loop. No integrations to maintain,
                   no data silos, no reconciliation spreadsheets.

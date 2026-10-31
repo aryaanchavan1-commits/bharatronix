@@ -30,7 +30,7 @@ const chips = [
 ];
 
 const stats = [
-  { value: "2,400+", label: "Businesses running on Cronaierp" },
+  { value: "2,400+", label: "Businesses running on Bharatrontech" },
   { value: "12", label: "Integrated ERP modules" },
   { value: "99.95%", label: "Uptime SLA, India data residency" },
   { value: "4.8★", label: "Average customer rating" },
@@ -74,7 +74,7 @@ export function HeroSection() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
-              Manufacturing, retail, finance, HR — Cronaierp suites connect every
+              Manufacturing, retail, finance, HR — Bharatrontech suites connect every
               department into one live command centre. Transparent pricing, instant
               license keys, free migration from Tally &amp; SAP.
             </p>

@@ -8,10 +8,8 @@ import {
   ArrowLeft,
   Building2,
   LoaderCircle,
-  Lock,
   Mail,
   Phone,
-  ShieldCheck,
   User,
   CreditCard,
 } from "lucide-react";
@@ -102,10 +100,6 @@ export default function CheckoutPage() {
         <h1 className="font-display mt-4 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
           Secure Checkout
         </h1>
-        <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-slate-500">
-          <Lock className="h-4 w-4 text-teal-600" />
-          Card details are entered on Stripe — we never see your card number
-        </p>
 
         <form onSubmit={handleSubmit} className="mt-8 grid gap-8 lg:grid-cols-[1.5fr_1fr]">
           <div className="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -147,18 +141,6 @@ export default function CheckoutPage() {
                   <input value={form.gstin} onChange={update("gstin")} placeholder="27XXXXX1234X1Z5" className={inputClass} />
                 </span>
               </label>
-            </div>
-
-            <div className="rounded-lg border border-teal-600/20 bg-teal-600/5 p-4 text-xs font-semibold leading-relaxed text-slate-600">
-              <p className="flex items-center gap-2 font-bold text-teal-700">
-                <ShieldCheck className="h-4 w-4" /> How payment works
-              </p>
-              <p className="mt-1.5">
-                Your card is authorized on Stripe (not charged yet). We capture the payment
-                after a short review window — chargebacks during that window are refunded
-                automatically. 3D Secure is required for larger orders. License keys are
-                delivered on your order page.
-              </p>
             </div>
 
             {error && (

@@ -9,7 +9,7 @@ interface Message {
 }
 
 const WELCOME =
-  "Hi, I'm the Cronaierp assistant. I can help you pick the right ERP suite, compare plans, understand licensing, or walk you through checkout. Ask me anything about manufacturing, retail, finance, HR, GST, pricing, migrations, or support.";
+  "Hi, I'm the Bharatrontech assistant. I can help you pick the right ERP suite, compare plans, understand licensing, or walk you through checkout. Ask me anything about manufacturing, retail, finance, HR, GST, pricing, migrations, or support.";
 
 export function AiAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -97,7 +97,7 @@ export function AiAssistant() {
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Bot className="h-5 w-5 text-teal-glow" />
-              <span className="font-display text-sm font-bold text-white">Cronaierp AI</span>
+              <span className="font-display text-sm font-bold text-white">Bharatrontech AI</span>
               <span className="rounded-full bg-teal-600/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-glow">
                 Online
               </span>
