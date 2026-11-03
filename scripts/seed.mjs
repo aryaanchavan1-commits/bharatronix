@@ -34,7 +34,7 @@ async function main() {
         features = EXCLUDED.features, modules = EXCLUDED.modules`,
       [
         p.slug, p.name, p.tagline, p.description, p.category, p.price, p.oldPrice,
-        p.image, p.rating, p.reviews, p.badge, p.deployment, p.usersIncluded,
+        p.image, p.rating, p.reviews, p.badge ?? "", p.deployment, p.usersIncluded,
         JSON.stringify(p.features), JSON.stringify(p.modules),
       ]
     );

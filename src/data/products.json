@@ -8,8 +8,8 @@
     "price": 1000,
     "oldPrice": 1500,
     "image": "/images/product-retail.jpg",
-    "rating": 4.6,
-    "reviews": 118,
+    "rating": 0,
+    "reviews": 0,
     "badge": "Starter",
     "deployment": "Cloud",
     "usersIncluded": "1 user",
@@ -21,10 +21,14 @@
       "Occupancy & ADR report every morning",
       "Works on any browser — no server needed"
     ],
-    "modules": ["Bookings", "Front Desk", "Guest Folio", "Room Status", "Reports"]
-  },
-  {
-    "slug": "billdesk-basic",
+    "modules": [
+      "Bookings",
+      "Front Desk",
+      "Guest Folio",
+      "Room Status",
+      "Reports"
+    ]
+  },{"slug": "billdesk-basic",
     "name": "Bharatronix BillingDesk",
     "tagline": "GST billing for small shops in under a minute",
     "description": "BillingDesk turns any counter into a billing station — GST invoices, quotations, customer ledger and daily cash summary. Made for kirana stores, hardware shops and showrooms that want simple billing without an accountant.",
@@ -32,9 +36,9 @@
     "price": 3000,
     "oldPrice": 4500,
     "image": "/images/product-retail.jpg",
-    "rating": 4.5,
-    "reviews": 402,
-    "badge": null,
+    "rating": 0,
+    "reviews": 0,
+    "badge": "Best Value",
     "deployment": "Cloud",
     "usersIncluded": "2 users",
     "features": [
@@ -45,7 +49,12 @@
       "Print or email receipts instantly",
       "Import your item list from Excel"
     ],
-    "modules": ["Billing", "Contacts", "Payments", "Reports"]
+    "modules": [
+      "Billing",
+      "Contacts",
+      "Payments",
+      "Reports"
+    ]
   },
   {
     "slug": "stocktrack-lite",
@@ -56,8 +65,8 @@
     "price": 6000,
     "oldPrice": 8000,
     "image": "/images/product-manufacturing.jpg",
-    "rating": 4.7,
-    "reviews": 256,
+    "rating": 0,
+    "reviews": 0,
     "badge": null,
     "deployment": "Cloud",
     "usersIncluded": "5 users",
@@ -69,7 +78,13 @@
       "Multi-location warehouse support",
       "Cycle-count audit report"
     ],
-    "modules": ["Inventory", "Purchases", "Warehouses", "Alerts", "Reports"]
+    "modules": [
+      "Inventory",
+      "Purchases",
+      "Warehouses",
+      "Alerts",
+      "Reports"
+    ]
   },
   {
     "slug": "cloudlite-smb",
@@ -80,8 +95,8 @@
     "price": 10000,
     "oldPrice": 14000,
     "image": "/images/product-retail.jpg",
-    "rating": 4.7,
-    "reviews": 689,
+    "rating": 0,
+    "reviews": 0,
     "badge": "Best Value",
     "deployment": "Cloud",
     "usersIncluded": "5 users",
@@ -93,7 +108,13 @@
       "Expense tracking & profit reports",
       "Go live in 1 day with guided setup"
     ],
-    "modules": ["Billing", "Inventory", "GST Reports", "Expenses", "Contacts"]
+    "modules": [
+      "Billing",
+      "Inventory",
+      "GST Reports",
+      "Expenses",
+      "Contacts"
+    ]
   },
   {
     "slug": "dinepos-restaurant",
@@ -104,9 +125,9 @@
     "price": 19999,
     "oldPrice": 24999,
     "image": "/images/product-retail.jpg",
-    "rating": 4.8,
-    "reviews": 187,
-    "badge": "Trending",
+    "rating": 0,
+    "reviews": 0,
+    "badge": null,
     "deployment": "Cloud",
     "usersIncluded": "10 users",
     "features": [
@@ -117,7 +138,14 @@
       "Menu engineering: profit & popularity matrix",
       "Online order bridge for Swiggy & Zomato"
     ],
-    "modules": ["Tables", "KOT", "Billing", "Menu", "Shifts", "Reports"]
+    "modules": [
+      "Tables",
+      "KOT",
+      "Billing",
+      "Menu",
+      "Shifts",
+      "Reports"
+    ]
   },
   {
     "slug": "careplus-clinic",
@@ -128,8 +156,8 @@
     "price": 29999,
     "oldPrice": 36999,
     "image": "/images/product-finance.jpg",
-    "rating": 4.7,
-    "reviews": 143,
+    "rating": 0,
+    "reviews": 0,
     "badge": null,
     "deployment": "Cloud",
     "usersIncluded": "10 users",
@@ -141,10 +169,15 @@
       "Lab & diagnostics order tracking",
       "Insurance & cash settlement reports"
     ],
-    "modules": ["Appointments", "OPD", "Prescriptions", "Pharmacy", "Lab", "Billing"]
-  },
-  {
-    "slug": "fincore-gst",
+    "modules": [
+      "Appointments",
+      "OPD",
+      "Prescriptions",
+      "Pharmacy",
+      "Lab",
+      "Billing"
+    ]
+  },{"slug": "fincore-gst",
     "name": "Bharatronix FinCore",
     "tagline": "Finance & GST accounting that closes books 5× faster",
     "description": "FinCore is a GST-native finance engine — automated e-invoicing, bank reconciliation, TDS/TCS, and audit-ready reports. Built with practising CAs so your compliance is always one step ahead of deadlines.",
@@ -152,8 +185,8 @@
     "price": 39999,
     "oldPrice": 54999,
     "image": "/images/product-finance.jpg",
-    "rating": 4.9,
-    "reviews": 523,
+    "rating": 0,
+    "reviews": 0,
     "badge": "CA Recommended",
     "deployment": "Cloud",
     "usersIncluded": "15 users",
@@ -167,7 +200,15 @@
       "Cash-flow forecasting dashboard",
       "Import everything from Tally in minutes"
     ],
-    "modules": ["General Ledger", "Receivables", "Payables", "GST & Tax", "Banking", "Budgeting", "Reports"]
+    "modules": [
+      "General Ledger",
+      "Receivables",
+      "Payables",
+      "GST & Tax",
+      "Banking",
+      "Budgeting",
+      "Reports"
+    ]
   },
   {
     "slug": "peoplesync-hr",
@@ -178,8 +219,8 @@
     "price": 49999,
     "oldPrice": 64999,
     "image": "/images/product-hr.jpg",
-    "rating": 4.7,
-    "reviews": 297,
+    "rating": 0,
+    "reviews": 0,
     "badge": null,
     "deployment": "Cloud",
     "usersIncluded": "200 employees",
@@ -193,7 +234,15 @@
       "Appraisals, OKRs & 360° feedback",
       "Full & final settlement in minutes"
     ],
-    "modules": ["Payroll", "Attendance", "Leave", "Recruitment", "Onboarding", "Performance", "Exit"]
+    "modules": [
+      "Payroll",
+      "Attendance",
+      "Leave",
+      "Recruitment",
+      "Onboarding",
+      "Performance",
+      "Exit"
+    ]
   },
   {
     "slug": "retailone-pos",
@@ -204,9 +253,9 @@
     "price": 59999,
     "oldPrice": 79999,
     "image": "/images/product-retail.jpg",
-    "rating": 4.8,
-    "reviews": 351,
-    "badge": "Trending",
+    "rating": 0,
+    "reviews": 0,
+    "badge": null,
     "deployment": "Cloud",
     "usersIncluded": "25 users",
     "features": [
@@ -219,7 +268,15 @@
       "Customer CRM with WhatsApp campaigns",
       "Daily sales reports on your phone"
     ],
-    "modules": ["POS Billing", "Inventory", "Multi-store", "Loyalty & CRM", "Omnichannel", "Purchase", "Accounts"]
+    "modules": [
+      "POS Billing",
+      "Inventory",
+      "Multi-store",
+      "Loyalty & CRM",
+      "Omnichannel",
+      "Purchase",
+      "Accounts"
+    ]
   },
   {
     "slug": "hotelpro-stay",
@@ -230,9 +287,9 @@
     "price": 79999,
     "oldPrice": 99999,
     "image": "/images/product-retail.jpg",
-    "rating": 4.8,
-    "reviews": 96,
-    "badge": "Hotel Favorite",
+    "rating": 0,
+    "reviews": 0,
+    "badge": null,
     "deployment": "Cloud",
     "usersIncluded": "25 users",
     "features": [
@@ -245,7 +302,15 @@
       "Occupancy, RevPAR & segment reporting",
       "FSSAI & GST-compliant folios"
     ],
-    "modules": ["Reservations", "Front Desk", "Housekeeping", "F&B Billing", "Night Audit", "Rate Plans", "Reports"]
+    "modules": [
+      "Reservations",
+      "Front Desk",
+      "Housekeeping",
+      "F&B Billing",
+      "Night Audit",
+      "Rate Plans",
+      "Reports"
+    ]
   },
   {
     "slug": "vidyapeeth-school",
@@ -256,8 +321,8 @@
     "price": 99999,
     "oldPrice": 124999,
     "image": "/images/product-hr.jpg",
-    "rating": 4.6,
-    "reviews": 88,
+    "rating": 0,
+    "reviews": 0,
     "badge": null,
     "deployment": "Cloud",
     "usersIncluded": "500 students",
@@ -271,7 +336,15 @@
       "Transport routes & pickup tracking",
       "Annual statistics for management"
     ],
-    "modules": ["Admissions", "Timetable", "Attendance", "Fees", "Exams", "Portal", "Reports"]
+    "modules": [
+      "Admissions",
+      "Timetable",
+      "Attendance",
+      "Fees",
+      "Exams",
+      "Portal",
+      "Reports"
+    ]
   },
   {
     "slug": "manufpro-erp",
@@ -282,8 +355,8 @@
     "price": 149999,
     "oldPrice": 189999,
     "image": "/images/product-manufacturing.jpg",
-    "rating": 4.8,
-    "reviews": 214,
+    "rating": 0,
+    "reviews": 0,
     "badge": "Flagship",
     "deployment": "Cloud",
     "usersIncluded": "50 users",
@@ -297,7 +370,16 @@
       "Dispatch planning with e-Way bills",
       "Live production dashboards on the floor TV"
     ],
-    "modules": ["BOM", "Production", "Quality", "Stores", "Maintenance", "Costing", "Dispatch", "Reports"]
+    "modules": [
+      "BOM",
+      "Production",
+      "Quality",
+      "Stores",
+      "Maintenance",
+      "Costing",
+      "Dispatch",
+      "Reports"
+    ]
   },
   {
     "slug": "hotelpro-enterprise",
@@ -308,8 +390,8 @@
     "price": 200000,
     "oldPrice": 240000,
     "image": "/images/product-manufacturing.jpg",
-    "rating": 4.9,
-    "reviews": 41,
+    "rating": 0,
+    "reviews": 0,
     "badge": "Enterprise",
     "deployment": "Cloud",
     "usersIncluded": "Unlimited users",
@@ -323,6 +405,15 @@
       "SSO, roles & audit trails for chains",
       "Dedicated onboarding & 24×7 support"
     ],
-    "modules": ["Central Reservations", "Rate Management", "Multi-property Ledger", "Loyalty", "Housekeeping", "POS Integration", "Security", "Reports"]
+    "modules": [
+      "Central Reservations",
+      "Rate Management",
+      "Multi-property Ledger",
+      "Loyalty",
+      "Housekeeping",
+      "POS Integration",
+      "Security",
+      "Reports"
+    ]
   }
 ]

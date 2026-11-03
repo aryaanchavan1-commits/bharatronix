@@ -78,11 +78,13 @@ export default async function ProductPage({ params }: Props) {
               </h1>
               <p className="mt-3 text-lg text-slate-300">{product.tagline}</p>
               <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-300">
-                <span className="flex items-center gap-1.5 text-amber-400">
-                  <Star className="h-4 w-4 fill-current" />
-                  {product.rating}
-                  <span className="text-slate-400">· {product.reviews} verified reviews</span>
-                </span>
+                {product.reviews > 0 && (
+                  <span className="flex items-center gap-1.5 text-amber-400">
+                    <Star className="h-4 w-4 fill-current" />
+                    {product.rating}
+                    <span className="text-slate-400">· {product.reviews} verified reviews</span>
+                  </span>
+                )}
                 <span className="flex items-center gap-1.5">
                   <Users className="h-4 w-4 text-teal-glow" /> {product.usersIncluded}
                 </span>

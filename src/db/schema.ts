@@ -13,7 +13,7 @@ import {
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
-  slug: text("slug").notNull(),
+  slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   tagline: text("tagline").notNull(),
   description: text("description").notNull().default(""),
@@ -37,9 +37,9 @@ export const orders = pgTable("orders", {
   orderNumber: text("order_number").notNull().unique(),
   customerName: text("customer_name").notNull(),
   email: text("email").notNull(),
-  phone: text("phone"),
-  company: text("company"),
-  address: text("address"),
+  phone: text("phone").notNull().default(""),
+  company: text("company").notNull().default(""),
+  address: text("address").notNull().default(""),
   fingerprint: text("fingerprint"),
   status: text("status").notNull().default("pending"), // pending|authorized|paid|failed|refunded
   captureMethod: text("capture_method").notNull().default("automatic"),
@@ -137,14 +137,21 @@ export const encryptionKeys = pgTable("encryption_keys", {
   expiresAt: timestamp("expires_at"), // When this key version should be rotated
 });
 export type EncryptionKey = typeof encryptionKeys.$inferSelect;
-export type NewEncryptionKey = typeof encryptionKeys.$inferInsert;
+export type NewEncryptionKey = typeof encryptionKeys.$inferInsert;export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name").notNull().default(""),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+export type User = typeof users.$inferSelect;
+export type NewUser = Omit<typeof users.$inferInsert, "id" | "createdAt">;
 
 export const siteFlags = pgTable("site_flags", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
 export type SiteFlag = typeof siteFlags.$inferSelect;
 
 // ---------------------------------------------------------------------------

@@ -30,10 +30,10 @@ const chips = [
 ];
 
 const stats = [
-  { value: "2,400+", label: "Businesses running on Bharatrontech" },
   { value: "12", label: "Integrated ERP modules" },
-  { value: "99.95%", label: "Uptime SLA, India data residency" },
-  { value: "4.8★", label: "Average customer rating" },
+  { value: "13", label: "Products in the store" },
+  { value: "₹1,000", label: "Starting price, per year" },
+  { value: "Instant", label: "License key delivery" },
 ];
 
 export function HeroSection() {

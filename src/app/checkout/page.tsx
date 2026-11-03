@@ -55,7 +55,7 @@ export default function CheckoutPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Order failed. Please try again.");
-      // Stripe hosts the payment page: card entry, 3DS and CVV checks happen there.
+      // Dodo hosts the payment page: card entry, 3DS and CVV checks happen there.
       if (data.checkoutUrl) {
         clear();
         window.location.href = data.checkoutUrl;
@@ -156,11 +156,11 @@ export default function CheckoutPage() {
             >
               {submitting ? (
                 <>
-                  <LoaderCircle className="h-4 w-4 animate-spin" /> Redirecting to Stripe…
+                  <LoaderCircle className="h-4 w-4 animate-spin" /> Redirecting to payment…
                 </>
               ) : (
                 <>
-                  <CreditCard className="h-4 w-4" /> Pay with Stripe · {formatINR(total)}
+                  <CreditCard className="h-4 w-4" /> Pay securely · {formatINR(total)}
                 </>
               )}
             </button>

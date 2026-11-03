@@ -7,21 +7,18 @@ import {
   products,
   siteFlags,
 } from "@/db/schema";
-import { getStripe, IP_VELOCITY_LIMIT, HIGH_RISK_COUNTRIES } from "@/lib/stripe";
+import {
+  IP_VELOCITY_LIMIT,
+  HIGH_RISK_COUNTRIES,
+  isRateLimited,
+} from "@/lib/stripe";
 import {
   calculateTransactionScore,
   validateGeoMatch,
   encryptTransactionData,
-  isHighRiskBIN,
-  updateBINRoutingStrategy,
   getCurrentKeyVersion,
-  sendWebhookNotification,
 } from "@/lib/fraud";
-import {
-  BIN_ROUTING_STRATEGIES,
-  GEO_MATCH_THRESHOLD,
-  FRAUD_SCORE_THRESHOLDS,
-} from "@/lib/fraud-config";
+import { createDodoCheckout } from "@/lib/dodo";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +46,6 @@ export async function POST(req: NextRequest) {
       "unknown";
     const userAgent = req.headers.get("user-agent") ?? null;
 
-    // Decline-rate circuit breaker (set by /api/cron/payments and /api/cron/fraud monitor)
     const [pauseFlag] = await db
       .select()
       .from(siteFlags)
@@ -62,7 +58,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // IP velocity check
     const ipVelocityResults = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(payments)
@@ -95,7 +90,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load products
     const dbProducts = await db
       .select()
       .from(products)
@@ -119,7 +113,6 @@ export async function POST(req: NextRequest) {
       req.headers.get("origin") ||
       "http://localhost:3000";
 
-    // Fraud scoring and validation
     const fraudScore = await calculateTransactionScore({
       ip: clientIp,
       userAgent,
@@ -127,40 +120,37 @@ export async function POST(req: NextRequest) {
       customerEmail: customer.email,
       customerName: customer.name,
       orderHistory: {
-        totalOrders: 0, // Would fetch from DB if customer has history
+        totalOrders: 0,
         totalSpent: 0,
       },
     });
 
-    // Geo validation
     const geoResult = await validateGeoMatch(
       clientIp,
-      customer.country || "IN", // Default to India
+      customer.country || "IN",
       customer.state
     );
 
-    // Check if BIN is high-risk (in production, extract BIN from payment method)
-    // For now, we assume BIN will be provided during payment
+    // dodo handles card entry, 3DS and CVV checks on its hosted page.
+    // We no longer store a Stripe session or Stripe risk fields for this flow.
     let isHighRiskBin = false;
     let binRoutingAction: "allow" | "manual_review" | "block" | "high_value_only" = "allow";
 
-    // Determine if step-up authentication is required
     const stepUpRequired =
       fraudScore.stepUpRequired ||
       geoResult.riskLevel === "high" ||
-      total > BIN_ROUTING_STRATEGIES.highValueThreshold;
+      false; // Stripe-specific threshold removed with Stripe flow
 
-    // Log fraud assessment
     await db.insert(orders).values({
       orderNumber,
       customerName: customer.name.trim(),
       email: customer.email.trim(),
-      phone: customer.phone ?? null,
-      company: customer.company ?? null,
-      address: customer.address ?? null,
+      phone: customer.phone ?? "",
+      company: customer.company ?? "",
+      address: customer.address ?? "",
       fingerprint: clientIp,
       status: "pending",
-      captureMethod: stepUpRequired ? "manual" : "manual", // Still manual capture for review
+      captureMethod: "manual",
       subtotal,
       gst,
       total,
@@ -171,75 +161,50 @@ export async function POST(req: NextRequest) {
       binEncrypted: null,
       metadataEncrypted: null,
       encryptionKeyVersion: getCurrentKeyVersion(),
-    }).returning();
-
-    // Create Stripe checkout session
-    const session = await getStripe().checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      payment_method_options: {
-        card: {
-          request_three_d_secure: stepUpRequired ? "any" : "automatic",
-        },
-      },
-      line_items: lineItems.map((li) => ({
-        price_data: {
-          currency: "inr",
-          product_data: { name: li.name, description: "Bharatrontech annual license" },
-          unit_amount: li.price,
-        },
-        quantity: li.qty,
-      })),
-      customer_email: customer.email.trim(),
-      metadata: {
-        customer_email: customer.email.trim(),
-        customer_name: customer.name.trim(),
-        ip: clientIp,
-        fraudScore: fraudScore.score.toString(),
-        fraudRiskLevel: fraudScore.riskLevel,
-        geoValidated: geoResult.valid ? "true" : "false",
-        geoRiskLevel: geoResult.riskLevel,
-        stepUpRequired: stepUpRequired ? "true" : "false",
-        cartItems: JSON.stringify(lineItems.map(({ slug, qty }) => ({ slug, qty }))),
-      },
-      payment_intent_data: {
-        capture_method: "manual",
-        description: `Bharatrontech ${orderNumber}`,
-        statement_descriptor_suffix: "BHARATRONTECH",
-        metadata: {
-          order_id: orderNumber,
-          customer_email: customer.email.trim(),
-          ip: clientIp,
-          fraudScore: fraudScore.score.toString(),
-        },
-      },
-      success_url: `${origin}/order/${orderNumber}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/checkout?canceled=1`,
     });
 
-    // Update order with session ID
+    let checkoutUrl: string | null = null;
+    let providerPaymentRef: string | null = null;
+    let dodoStatus: string | null = null;
+
+    try {
+      const dodo = await createDodoCheckout({
+        orderNumber,
+        items: lineItems.map(({ slug, name, price, qty }) => ({ slug, name, price, qty })),
+        customer: {
+          name: customer.name.trim(),
+          email: customer.email.trim(),
+          phone: customer.phone ?? "",
+          company: customer.company ?? undefined,
+          address: customer.address ?? undefined,
+        },
+        returnUrl: `${origin}/order/${orderNumber}?paid=1`,
+        cancelUrl: `${origin}/checkout?canceled=1`,
+        metadata: {
+          fraudScore: fraudScore.score.toString(),
+          fraudRiskLevel: fraudScore.riskLevel,
+          geoValidated: geoResult.valid ? "true" : "false",
+          geoRiskLevel: geoResult.riskLevel,
+          stepUpRequired: stepUpRequired ? "true" : "false",
+          cartItems: JSON.stringify(lineItems.map(({ slug, qty }) => ({ slug, qty }))),
+        },
+      });
+      checkoutUrl = dodo.checkoutUrl;
+      providerPaymentRef = dodo.paymentId;
+      dodoStatus = "pending";
+    } catch (dodoError) {
+      console.error("[orders:POST] dodo payment creation failed", dodoError);
+      return NextResponse.json(
+        { error: "Could not start checkout. Please retry in a moment." },
+        { status: 500 }
+      );
+    }
+
     await db
       .update(orders)
-      .set({ stripeSessionId: session.id })
+      .set({ stripeSessionId: providerPaymentRef })
       .where(eq(orders.orderNumber, orderNumber));
 
-    // Encrypt and store transaction data
-    await encryptTransactionData(
-      (await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1))[0]!.id,
-      clientIp,
-      userAgent,
-      undefined, // BIN will be encrypted after payment
-      {
-        fraudScore: fraudScore.score,
-        riskLevel: fraudScore.riskLevel,
-        geoValidation: geoResult,
-        stepUpRequired,
-        cartTotal: total,
-        cartItems: lineItems,
-      }
-    );
-
-    // Get order ID
     const [createdOrder] = await db
       .select()
       .from(orders)
@@ -250,51 +215,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
     }
 
-    // Create payment record
+    await encryptTransactionData(
+      createdOrder.id,
+      clientIp,
+      userAgent,
+      undefined,
+      {
+        fraudScore: fraudScore.score,
+        riskLevel: fraudScore.riskLevel,
+        geoValidation: geoResult,
+        stepUpRequired,
+        cartTotal: total,
+        cartItems: lineItems,
+      }
+    );
+
     await db.insert(payments).values({
       orderId: String(createdOrder.id),
       amount: total,
       currency: "inr",
       status: "pending",
       captureMethod: "manual",
-      providerCheckoutRef: session.id,
+      providerCheckoutRef: providerPaymentRef,
+      providerPaymentRef: null,
       clientIp,
       userAgent,
-      stripeRiskLevel: fraudScore.riskLevel,
-      stripeRiskScore: fraudScore.score,
-      isFraudulent: fraudScore.riskLevel === "critical",
-      country: HIGH_RISK_COUNTRIES.includes(req.headers.get("x-vercel-ip-country") ?? "")
-        ? req.headers.get("x-vercel-ip-country")
-        : null,
       fraudScore: fraudScore.score,
       stepUpRequired,
       geoValidated: geoResult.valid,
       geoRiskLevel: geoResult.riskLevel,
-      cvvAvailable: true, // Will be updated after payment method check
+      isFraudulent: fraudScore.riskLevel === "critical",
+      country: HIGH_RISK_COUNTRIES.includes(req.headers.get("x-vercel-ip-country") ?? "")
+        ? req.headers.get("x-vercel-ip-country")
+        : "",
     });
 
-    // Send webhook for high-risk transactions
-    if (fraudScore.riskLevel === "high" || fraudScore.riskLevel === "critical") {
-      await sendWebhookNotification(
-        "high_risk_transaction",
-        {
-          orderNumber,
-          customerEmail: customer.email,
-          amount: total,
-          fraudScore: fraudScore.score,
-          riskLevel: fraudScore.riskLevel,
-          factors: fraudScore.factors,
-          clientIp,
-        },
-        fraudScore.riskLevel === "critical" ? "critical" : "high"
-      );
-    }
-
-    if (!session.url) {
-      return NextResponse.json({ error: "Stripe session error." }, { status: 502 });
-    }
-
-    return NextResponse.json({ orderNumber, checkoutUrl: session.url });
+    return NextResponse.json({ orderNumber, checkoutUrl });
   } catch (err) {
     console.error("[orders:POST]", err);
     return NextResponse.json(
@@ -304,7 +260,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET /api/orders - Fetch order by number (for order status page)
 export async function GET(req: NextRequest) {
   try {
     const orderNumber = req.nextUrl.searchParams.get("orderNumber");
@@ -322,7 +277,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Get associated payments
     const payments_list = await db
       .select()
       .from(payments)

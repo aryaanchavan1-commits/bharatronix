@@ -33,12 +33,6 @@ import { Faq } from "@/components/faq";
 
 export const dynamic = "force-dynamic";
 
-const clients = [
-  "Shakti Steel Works", "Apex Pharma", "Kiran Textiles", "MetroMart Retail",
-  "Deccan Auto Components", "Sunrise Foods", "Veer Logistics", "Ganesh Agro",
-  "Pune Precision Tools", "Coastal Chemicals",
-];
-
 const modules = [
   { icon: Factory, name: "Manufacturing", desc: "BOM, MRP, shop-floor & OEE tracking" },
   { icon: Landmark, name: "Finance & GST", desc: "Ledgers, e-Invoice, GSTR filing" },
@@ -78,25 +72,6 @@ export default async function HomePage() {
   return (
     <>
       <HeroSection />
-
-      {/* Trusted-by marquee */}
-      <section className="border-b border-slate-200 bg-white py-6">
-        <p className="text-center text-xs font-bold uppercase tracking-[0.25em] text-slate-400">
-          Trusted by 2,400+ Indian businesses
-        </p>
-        <div className="relative mt-4 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
-          <div className="animate-marquee flex w-max gap-12 pr-12">
-            {[...clients, ...clients].map((c, i) => (
-              <span
-                key={i}
-                className="font-display whitespace-nowrap text-lg font-bold text-slate-300 transition-colors hover:text-saffron-500"
-              >
-                {c}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Products */}
       <section id="store" className="bg-dots-light py-20">
@@ -161,8 +136,8 @@ export default async function HomePage() {
                   {[
                     "API-first: connect anything with REST & webhooks",
                     "AI forecasting trained on Indian demand patterns",
-                    "India data residency, ISO 27001 certified",
-                    "Works in Hindi, English + 8 regional languages",
+                    "Instant license keys and GST invoice at checkout",
+                    "Cloud or on-premise deployment options",
                   ].map((t) => (
                     <li key={t} className="flex items-start gap-2.5">
                       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-saffron-400" />

@@ -41,11 +41,13 @@ export function ProductCard({ product }: { product: Product }) {
           <span className="rounded-full bg-ink-900/5 px-2.5 py-1 uppercase tracking-wide text-ink-700">
             {product.category}
           </span>
-          <span className="flex items-center gap-1 text-amber-500">
-            <Star className="h-3.5 w-3.5 fill-current" />
-            {product.rating}
-            <span className="font-semibold text-slate-400">({product.reviews})</span>
-          </span>
+          {product.reviews > 0 && (
+            <span className="flex items-center gap-1 text-amber-500">
+              <Star className="h-3.5 w-3.5 fill-current" />
+              {product.rating}
+              <span className="font-semibold text-slate-400">({product.reviews})</span>
+            </span>
+          )}
         </div>
 
         <Link href={`/products/${product.slug}`}>

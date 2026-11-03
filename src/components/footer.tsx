@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, Mail, MapPin, PhoneCall, ShieldCheck } from "lucide-react";
+import { Boxes, Mail, MapPin, ShieldCheck } from "lucide-react";
 
 export function Footer() {
   return (
@@ -51,11 +51,18 @@ export function Footer() {
               Company
             </h4>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li></li>
-              <li></li>
-              <li></li>
-              <li></li>
-              <li></li>
+              {[
+                ["Home", "/"],
+                ["All products", "/products"],
+                ["FAQ", "/#faq"],
+                ["Order status", "/checkout"],
+              ].map(([label, href]) => (
+                <li key={href}>
+                  <Link href={href} className="transition-colors hover:text-saffron-400">
+                    {label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -69,10 +76,6 @@ export function Footer() {
                 Bharatrontech HQ, Hinjawadi Phase 2, Pune, Maharashtra 411057
               </li>
               <li className="flex items-center gap-2.5">
-                <PhoneCall className="h-4 w-4 shrink-0 text-saffron-400" />
-                +91 98000 00000
-              </li>
-              <li className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 shrink-0 text-saffron-400" />
                 sales@bharatrontech.in
               </li>
@@ -81,10 +84,8 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs sm:flex-row">
-          <p>© {new Date().getFullYear()} Bharatrontech Technologies Pvt. Ltd. All rights reserved.</p>
-          <p>
-            GSTIN 27AABCB1234F1Z5 · CIN U72900PN2024PTC000001
-          </p>
+          <p>© {new Date().getFullYear()} Bharatrontech. All rights reserved.</p>
+          <p>Made in India · Secure checkout by Stripe</p>
         </div>
       </div>
     </footer>

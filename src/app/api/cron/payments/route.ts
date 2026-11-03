@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, payments, siteFlags } from "@/db/schema";
-import { getStripe, RETRY_DELAYS_MS } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
+
+const RETRY_DELAYS_MS = [1, 4, 12].map((h) => h * 60 * 60 * 1000);
 
 export const dynamic = "force-dynamic";
 
