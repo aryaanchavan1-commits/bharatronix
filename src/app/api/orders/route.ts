@@ -18,7 +18,7 @@ import {
   encryptTransactionData,
   getCurrentKeyVersion,
 } from "@/lib/fraud";
-import { getStripe } from "@/lib/stripe";
+import { createDodoCheckout } from "@/lib/dodo";
 
 export const dynamic = "force-dynamic";
 
@@ -131,7 +131,6 @@ export async function POST(req: NextRequest) {
       customer.state
     );
 
-    const stripe = getStripe();
     const riskLevel = fraudScore.riskLevel;
     const stepUpRequired = riskLevel === "critical" || geoResult.riskLevel === "high";
 
@@ -149,7 +148,7 @@ export async function POST(req: NextRequest) {
       gst,
       total,
       items: lineItems,
-      stripeSessionId: null, // set after Stripe session creation below
+      stripeSessionId: null,
       stripePaymentIntentId: null,
       ipEncrypted: null,
       userAgentEncrypted: null,
@@ -159,26 +158,22 @@ export async function POST(req: NextRequest) {
     });
 
     let checkoutUrl: string | null = null;
+    let providerPaymentRef: string | null = null;
 
     try {
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        line_items: lineItems.map((li) => ({
-          price_data: {
-            currency: "inr",
-            unit_amount: Math.round(li.price * 100),
-            product_data: {
-              name: li.name,
-              description: `Qty: ${li.qty}`,
-              images: li.image ? [li.image] : [],
-            },
-          },
-          quantity: li.qty,
-        })),
-        customer_email: customer.email.trim(),
-        payment_method_types: ["card"],
+      const dodo = await createDodoCheckout({
+        orderNumber,
+        items: lineItems.map(({ slug, name, price, qty }) => ({ slug, name, price, qty })),
+        customer: {
+          name: customer.name.trim(),
+          email: customer.email.trim(),
+          phone: customer.phone ?? "",
+          company: customer.company ?? undefined,
+          address: customer.address ?? undefined,
+        },
+        returnUrl: `${origin}/order/${orderNumber}?paid=1`,
+        cancelUrl: `${origin}/checkout?canceled=1`,
         metadata: {
-          order_number: orderNumber,
           fraud_score: String(fraudScore.score),
           fraud_risk_level: fraudScore.riskLevel,
           geo_validated: geoResult.valid ? "true" : "false",
@@ -187,33 +182,35 @@ export async function POST(req: NextRequest) {
           customer_name: customer.name.trim(),
           cart_items: JSON.stringify(lineItems.map(({ slug, qty }) => ({ slug, qty }))),
         },
-        success_url: `${origin}/order/${orderNumber}?paid=1`,
-        cancel_url: `${origin}/checkout?canceled=1`,
-        ...(stepUpRequired
-          ? {
-              payment_intent_data: {
-                capture_method: "manual",
-                metadata: {
-                  step_up_required: "true",
-                },
-              },
-            }
-          : {}),
       });
-      checkoutUrl = session.url ?? null;
+      checkoutUrl = dodo.checkoutUrl;
+      providerPaymentRef = dodo.paymentId;
 
       await db
         .update(orders)
-        .set({ stripeSessionId: session.id })
+        .set({ stripeSessionId: dodo.sessionId })
         .where(eq(orders.orderNumber, orderNumber));
-    } catch (stripeError) {
-      console.error("[orders:POST] Stripe checkout creation failed", stripeError);
+    } catch (dodoError) {
+      console.error("[orders:POST] dodo checkout creation failed", dodoError);
+      const msg =
+        dodoError instanceof Error ? dodoError.message : "Dodo checkout creation failed";
+      // Surface configuration problems clearly so they can be fixed, rather than
+      // a generic 500. Payment-process errors still get a 500.
+      if (
+        msg.includes("DODO_PAYMENTS_API_KEY") ||
+        msg.includes("DODO_PRODUCT_IDS") ||
+        msg.includes("No Dodo product id configured")
+      ) {
+        return NextResponse.json(
+          { error: msg },
+          { status: 503 }
+        );
+      }
       return NextResponse.json(
         { error: "Could not start checkout. Please retry in a moment." },
         { status: 500 }
       );
     }
-
 
     const [createdOrder] = await db
       .select()
@@ -246,8 +243,8 @@ export async function POST(req: NextRequest) {
       currency: "inr",
       status: "pending",
       captureMethod: "manual",
-      providerCheckoutRef: checkoutUrl ? (createdOrder.stripeSessionId ?? null) : null,
-      providerPaymentRef: null,
+      providerCheckoutRef: checkoutUrl ? createdOrder.stripeSessionId ?? null : null,
+      providerPaymentRef,
       clientIp,
       userAgent,
       fraudScore: fraudScore.score,
