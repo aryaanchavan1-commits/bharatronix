@@ -97,7 +97,8 @@ export async function createDodoCheckout(input: CreateCheckoutInput): Promise<Do
     },
   };
 
-  if (input.customer.company) body.customer_business_name = input.customer.company;
+  // customer_business_name is rejected unless a tax_id accompanies it, and we
+  // do not collect GSTIN at checkout, so the company stays on our order record.
   body.feature_flags = {
     allow_customer_editing_email: true,
     allow_customer_editing_name: true,
