@@ -63,7 +63,7 @@ export const FRAUD_SCORE_THRESHOLDS = {
   critical: 80, // 80-100
 };
 
-export const IP_VELOCITY_LIMIT = 3; // Max transactions per IP in 24 hours
+export const IP_VELOCITY_LIMIT = 12; // Max transactions per IP in 24 hours — high enough to not block real buyers on shared IPs, low enough to throttle script grinding
 export const GEO_MATCH_THRESHOLD = 0.8; // 80% geo match required
 
 // ---------------------------------------------------------------------------
