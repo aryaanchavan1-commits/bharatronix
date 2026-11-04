@@ -30,6 +30,7 @@ type Body = {
     phone?: string;
     company?: string;
     address?: string;
+    gstin?: string;
     country?: string;
     state?: string;
   };
@@ -170,6 +171,7 @@ export async function POST(req: NextRequest) {
           phone: customer.phone ?? "",
           company: customer.company ?? undefined,
           address: customer.address ?? undefined,
+          gstin: customer.gstin ?? undefined,
         },
         returnUrl: `${origin}/order/${orderNumber}?paid=1`,
         cancelUrl: `${origin}/checkout?canceled=1`,

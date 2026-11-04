@@ -49,7 +49,7 @@ export default function CheckoutPage() {
             email: form.email,
             phone: form.phone,
             company: form.company,
-            address: form.gstin,
+            gstin: form.gstin,
           },
         }),
       });

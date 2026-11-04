@@ -31,6 +31,8 @@ export interface CreateCheckoutInput {
     phone?: string;
     company?: string;
     address?: string;
+    /** GSTIN. Sent to Dodo as `tax_id`, which is what unlocks a GST invoice. */
+    gstin?: string;
   };
   /** Page Dodo redirects to after a successful payment. */
   returnUrl: string;
@@ -97,14 +99,26 @@ export async function createDodoCheckout(input: CreateCheckoutInput): Promise<Do
     },
   };
 
-  // customer_business_name is rejected unless a tax_id accompanies it, and we
-  // do not collect GSTIN at checkout, so the company stays on our order record.
+  // Dodo rejects customer_business_name unless a tax_id accompanies it, and a
+  // tax_id in turn requires billing_address.country. Only send the trio when
+  // the buyer actually gave a GSTIN; otherwise the company stays on our order.
+  const gstin = input.customer.gstin?.trim();
+  if (gstin) {
+    body.tax_id = gstin;
+    body.billing_address = { country: "IN" };
+    if (input.customer.company) body.customer_business_name = input.customer.company;
+  }
+
   body.feature_flags = {
     allow_customer_editing_email: true,
     allow_customer_editing_name: true,
     allow_phone_number_collection: Boolean(input.customer.phone),
   };
+  // Don't *force* 3DS beyond what the card network or RBI requires - forcing it
+  // hurts conversion. Regulatory 2FA still applies to Indian cards regardless.
   body.force_3ds = false;
+  // Only the zipcode is required at checkout; street/city/state stay optional.
+  body.minimal_address = true;
 
   const res = await fetch(`${BASE_URL}/checkouts`, {
     method: "POST",
