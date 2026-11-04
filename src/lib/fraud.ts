@@ -36,12 +36,24 @@ const KEY_LENGTH = 32;
 
 async function getEncryptionKey(keyVersion: number): Promise<Buffer | null> {
   try {
-    const results = await db
-      .select()
-      .from(encryptionKeys)
-      .where(eq(encryptionKeys.keyVersion, keyVersion))
-      .limit(1);
-    const keyRecord = results[0];
+    const load = async () =>
+      (
+        await db
+          .select()
+          .from(encryptionKeys)
+          .where(eq(encryptionKeys.keyVersion, keyVersion))
+          .limit(1)
+      )[0];
+
+    let keyRecord = await load();
+    // The table starts empty and nothing else seeds it, which made the first
+    // order on a fresh database fail with "No encryption key found" after the
+    // order row was already written. Seed on demand (no-op once a key exists).
+    if (!keyRecord) {
+      await initializeEncryptionKeys();
+      keyRecord = await load();
+    }
+
     if (!keyRecord?.keyMaterial) return null;
     return Buffer.from(keyRecord.keyMaterial, "hex");
   } catch {
