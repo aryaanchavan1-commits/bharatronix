@@ -38,6 +38,21 @@ type Body = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// GSTIN is 2-digit state code + 10-char PAN + entity code + "Z" + checksum.
+// Dodo answers an invalid tax id with a 400, which used to surface as a dead
+// "retry in a moment" checkout, so catch the typo here where we can explain it.
+function isValidGstin(value: string): boolean {
+  const gstin = value.trim().toUpperCase();
+  if (!/^[0-9A-Z]{15}$/.test(gstin)) return false;
+  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let sum = 0;
+  for (let i = 0; i < 14; i++) {
+    const product = alphabet.indexOf(gstin[i]) * (i % 2 ? 2 : 1);
+    sum += Math.floor(product / 36) + (product % 36);
+  }
+  return alphabet[(36 - (sum % 36)) % 36] === gstin[14];
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Body;
@@ -87,6 +102,16 @@ export async function POST(req: NextRequest) {
     if (!customer.name?.trim() || !EMAIL_RE.test(customer.email ?? "")) {
       return NextResponse.json(
         { error: "Please provide a valid name and a working email address." },
+        { status: 400 }
+      );
+    }
+    const gstin = customer.gstin?.trim() ?? "";
+    if (gstin && !isValidGstin(gstin)) {
+      return NextResponse.json(
+        {
+          error:
+            "That GSTIN doesn't look right. Check the 15 characters, or leave it blank for a personal invoice.",
+        },
         { status: 400 }
       );
     }
@@ -171,7 +196,7 @@ export async function POST(req: NextRequest) {
           phone: customer.phone ?? "",
           company: customer.company ?? undefined,
           address: customer.address ?? undefined,
-          gstin: customer.gstin ?? undefined,
+          gstin: gstin || undefined,
         },
         returnUrl: `${origin}/order/${orderNumber}?paid=1`,
         cancelUrl: `${origin}/checkout?canceled=1`,
