@@ -25,15 +25,39 @@ export const metadata: Metadata = {
   title: "Order Confirmed — Bharatrontech",
 };
 
-type Props = { params: Promise<{ orderNumber: string }> };
+type Props = {
+  params: Promise<{ orderNumber: string }>;
+  searchParams: Promise<{ paid?: string }>;
+};
 
-export default async function OrderPage({ params }: Props) {
+export default async function OrderPage({ params, searchParams }: Props) {
   const { orderNumber } = await params;
-  const [order] = await db
+  const { paid: returnedFromPayment } = await searchParams;
+
+  let [order] = await db
     .select()
     .from(orders)
     .where(eq(orders.orderNumber, orderNumber));
   if (!order) notFound();
+
+  // Dodo redirects here after payment. If the webhook has not landed yet (or is
+  // not registered), confirm with Dodo directly so the buyer still gets keys.
+  if (order.status === "pending" && returnedFromPayment === "1" && order.stripeSessionId) {
+    try {
+      const { getDodoCheckout } = await import("@/lib/dodo");
+      const { markOrderPaid } = await import("@/lib/dodo-orders");
+      const checkout = await getDodoCheckout(order.stripeSessionId);
+      if (checkout.paymentStatus === "succeeded" || checkout.paymentId) {
+        await markOrderPaid(order.orderNumber, { paymentId: checkout.paymentId });
+        [order] = await db
+          .select()
+          .from(orders)
+          .where(eq(orders.orderNumber, orderNumber));
+      }
+    } catch (err) {
+      console.error("[order] payment reconciliation failed", err);
+    }
+  }
 
   // license keys are revealed only once payment is captured (or legacy demo orders)
   const paid = order.status === "paid";

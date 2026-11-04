@@ -1,15 +1,18 @@
-// Dodo Payments (https://app.dodopayments.com/) hosted checkout integration.
+// Dodo Payments hosted checkout integration.
 // Docs: https://docs.dodopayments.com/api-reference/checkout-sessions/create
 //
 // Dodo is a merchant-of-record platform: every sellable item must exist as a
-// Product in the Dodo dashboard. Map store slugs -> Dodo product ids via the
-// DODO_PRODUCT_IDS env var, e.g. {"erp-basic":"prod_abc123"}.
+// Product in the Dodo account. Map store slugs -> Dodo product ids via the
+// DODO_PRODUCT_IDS env var, e.g. {"erp-basic":"pdt_abc123"}.
+//
+// app.dodopayments.com is the dashboard, not the API. Live API calls must go to
+// live.dodopayments.com and test keys to test.dodopayments.com.
 
 const BASE_URL = (
   process.env.DODO_PAYMENTS_BASE_URL ||
   (process.env.DODO_PAYMENTS_ENV === "test_mode"
     ? "https://test.dodopayments.com"
-    : "https://app.dodopayments.com")
+    : "https://live.dodopayments.com")
 ).replace(/\/+$/, "");
 
 export interface DodoLineItem {
@@ -70,10 +73,12 @@ export async function createDodoCheckout(input: CreateCheckoutInput): Promise<Do
         `No Dodo product id configured for "${item.slug}". Set DODO_PRODUCT_IDS (or DODO_DEFAULT_PRODUCT_ID).`
       );
     }
+    // No `amount` override: prices live on the Dodo products (INR paise) and
+    // Dodo, as merchant of record, adds GST itself. Overriding the amount
+    // would bypass that tax engine.
     return {
       product_id: productId,
       quantity: item.qty,
-      amount: item.price, // override price so store DB stays the source of truth
     };
   });
 
@@ -132,9 +137,11 @@ export async function createDodoCheckout(input: CreateCheckoutInput): Promise<Do
 }
 
 /**
- * Verify a Standard Webhooks (svix-compatible) signature from Dodo.
+ * Verify a Standard Webhooks signature from Dodo.
  * Headers: webhook-id, webhook-timestamp, webhook-signature.
- * Secret is the base64 raw 32-byte Ed25519 public key from the Dodo dashboard.
+ * Secret is the `whsec_...` signing secret from the endpoint overview tab:
+ * base64-decode it (after the prefix) and HMAC-SHA256 the "{id}.{timestamp}.{body}"
+ * string. The signature header holds one or more space-separated `v1,<base64>` values.
  */
 export async function verifyDodoWebhook(
   body: string,
@@ -149,19 +156,32 @@ export async function verifyDodoWebhook(
   // Reject replayed messages older than 5 minutes.
   if (Math.abs(Date.now() / 1000 - ts) > 300) return false;
 
-  const { createPublicKey, verify } = await import("crypto");
+  const { createHmac, timingSafeEqual } = await import("crypto");
 
-  const rawKey = Buffer.from(secret.replace(/^whsec_/, ""), "base64");
-  if (rawKey.length !== 32) return false;
+  const key = Buffer.from(secret.replace(/^whsec_/, ""), "base64");
+  if (key.length === 0) return false;
 
-  // SPKI DER prefix for Ed25519 public keys.
-  const spki = Buffer.concat([Buffer.from("302a300506032b6570032100", "hex"), rawKey]);
-  const publicKey = createPublicKey({ key: spki, format: "der", type: "spki" });
-  const signedContent = Buffer.from(`${headers.id}.${headers.timestamp}.${body}`, "utf8");
-  const sig = Buffer.from(headers.signature, "base64");
-  try {
-    return verify(null, signedContent, publicKey, sig);
-  } catch {
-    return false;
-  }
+  const expected = createHmac("sha256", key)
+    .update(`${headers.id}.${headers.timestamp}.${body}`)
+    .digest();
+
+  return headers.signature.split(" ").some((part) => {
+    const [version, sig] = part.split(",");
+    if (version !== "v1" || !sig) return false;
+    const provided = Buffer.from(sig, "base64");
+    return provided.length === expected.length && timingSafeEqual(provided, expected);
+  });
+}
+
+/** Look up a checkout session's payment state. Used to confirm a payment on return. */
+export async function getDodoCheckout(
+  sessionId: string
+): Promise<{ paymentId: string | null; paymentStatus: string | null }> {
+  const res = await fetch(`${BASE_URL}/checkouts/${encodeURIComponent(sessionId)}`, {
+    headers: { Authorization: `Bearer ${apiKey()}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`Dodo checkout lookup failed (${res.status})`);
+  const data = (await res.json()) as { payment_id?: string | null; payment_status?: string | null };
+  return { paymentId: data.payment_id ?? null, paymentStatus: data.payment_status ?? null };
 }
