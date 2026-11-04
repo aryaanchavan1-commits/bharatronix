@@ -18,7 +18,7 @@ import {
   encryptTransactionData,
   getCurrentKeyVersion,
 } from "@/lib/fraud";
-import { createDodoCheckout } from "@/lib/dodo";
+import { getStripe } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -131,15 +131,9 @@ export async function POST(req: NextRequest) {
       customer.state
     );
 
-    // dodo handles card entry, 3DS and CVV checks on its hosted page.
-    // We no longer store a Stripe session or Stripe risk fields for this flow.
-    let isHighRiskBin = false;
-    let binRoutingAction: "allow" | "manual_review" | "block" | "high_value_only" = "allow";
-
-    const stepUpRequired =
-      fraudScore.stepUpRequired ||
-      geoResult.riskLevel === "high" ||
-      false; // Stripe-specific threshold removed with Stripe flow
+    const stripe = getStripe();
+    const riskLevel = fraudScore.riskLevel;
+    const stepUpRequired = riskLevel === "critical" || geoResult.riskLevel === "high";
 
     await db.insert(orders).values({
       orderNumber,
@@ -155,7 +149,8 @@ export async function POST(req: NextRequest) {
       gst,
       total,
       items: lineItems,
-      stripeSessionId: null,
+      stripeSessionId: null, // set after Stripe session creation below
+      stripePaymentIntentId: null,
       ipEncrypted: null,
       userAgentEncrypted: null,
       binEncrypted: null,
@@ -164,46 +159,61 @@ export async function POST(req: NextRequest) {
     });
 
     let checkoutUrl: string | null = null;
-    let providerPaymentRef: string | null = null;
-    let dodoStatus: string | null = null;
 
     try {
-      const dodo = await createDodoCheckout({
-        orderNumber,
-        items: lineItems.map(({ slug, name, price, qty }) => ({ slug, name, price, qty })),
-        customer: {
-          name: customer.name.trim(),
-          email: customer.email.trim(),
-          phone: customer.phone ?? "",
-          company: customer.company ?? undefined,
-          address: customer.address ?? undefined,
-        },
-        returnUrl: `${origin}/order/${orderNumber}?paid=1`,
-        cancelUrl: `${origin}/checkout?canceled=1`,
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: lineItems.map((li) => ({
+          price_data: {
+            currency: "inr",
+            unit_amount: Math.round(li.price * 100),
+            product_data: {
+              name: li.name,
+              description: `Qty: ${li.qty}`,
+              images: li.image ? [li.image] : [],
+            },
+          },
+          quantity: li.qty,
+        })),
+        customer_email: customer.email.trim(),
+        payment_method_types: ["card"],
         metadata: {
-          fraudScore: fraudScore.score.toString(),
-          fraudRiskLevel: fraudScore.riskLevel,
-          geoValidated: geoResult.valid ? "true" : "false",
-          geoRiskLevel: geoResult.riskLevel,
-          stepUpRequired: stepUpRequired ? "true" : "false",
-          cartItems: JSON.stringify(lineItems.map(({ slug, qty }) => ({ slug, qty }))),
+          order_number: orderNumber,
+          fraud_score: String(fraudScore.score),
+          fraud_risk_level: fraudScore.riskLevel,
+          geo_validated: geoResult.valid ? "true" : "false",
+          geo_risk_level: geoResult.riskLevel,
+          step_up_required: stepUpRequired ? "true" : "false",
+          customer_name: customer.name.trim(),
+          cart_items: JSON.stringify(lineItems.map(({ slug, qty }) => ({ slug, qty }))),
         },
+        success_url: `${origin}/order/${orderNumber}?paid=1`,
+        cancel_url: `${origin}/checkout?canceled=1`,
+        ...(stepUpRequired
+          ? {
+              payment_intent_data: {
+                capture_method: "manual",
+                metadata: {
+                  step_up_required: "true",
+                },
+              },
+            }
+          : {}),
       });
-      checkoutUrl = dodo.checkoutUrl;
-      providerPaymentRef = dodo.paymentId;
-      dodoStatus = "pending";
-    } catch (dodoError) {
-      console.error("[orders:POST] dodo payment creation failed", dodoError);
+      checkoutUrl = session.url ?? null;
+
+      await db
+        .update(orders)
+        .set({ stripeSessionId: session.id })
+        .where(eq(orders.orderNumber, orderNumber));
+    } catch (stripeError) {
+      console.error("[orders:POST] Stripe checkout creation failed", stripeError);
       return NextResponse.json(
         { error: "Could not start checkout. Please retry in a moment." },
         { status: 500 }
       );
     }
 
-    await db
-      .update(orders)
-      .set({ stripeSessionId: providerPaymentRef })
-      .where(eq(orders.orderNumber, orderNumber));
 
     const [createdOrder] = await db
       .select()
@@ -236,7 +246,7 @@ export async function POST(req: NextRequest) {
       currency: "inr",
       status: "pending",
       captureMethod: "manual",
-      providerCheckoutRef: providerPaymentRef,
+      providerCheckoutRef: checkoutUrl ? (createdOrder.stripeSessionId ?? null) : null,
       providerPaymentRef: null,
       clientIp,
       userAgent,
@@ -244,7 +254,7 @@ export async function POST(req: NextRequest) {
       stepUpRequired,
       geoValidated: geoResult.valid,
       geoRiskLevel: geoResult.riskLevel,
-      isFraudulent: fraudScore.riskLevel === "critical",
+      isFraudulent: riskLevel === "critical",
       country: HIGH_RISK_COUNTRIES.includes(req.headers.get("x-vercel-ip-country") ?? "")
         ? req.headers.get("x-vercel-ip-country")
         : "",
