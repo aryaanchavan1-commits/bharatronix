@@ -51,11 +51,14 @@ export async function markOrderPaid(
 
 export async function markOrderFailed(orderNumber: string): Promise<void> {
   const [order] = await db
-    .select({ id: orders.id })
+    .select({ id: orders.id, status: orders.status })
     .from(orders)
     .where(eq(orders.orderNumber, orderNumber))
     .limit(1);
   if (!order) return;
+  // Never demote a captured payment: webhooks can arrive out of order, so a
+  // late payment.failed for an earlier attempt must not revoke good keys.
+  if (order.status === "paid" || order.status === "refunded") return;
   await db.update(orders).set({ status: "failed" }).where(eq(orders.id, order.id));
   await db
     .update(payments)
