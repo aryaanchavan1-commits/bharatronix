@@ -99,6 +99,18 @@ export async function createDodoCheckout(input: CreateCheckoutInput): Promise<Do
     },
   };
 
+  // Prefill the buyer's details. Our own form already collected them and
+  // validated name/email, so the hosted page shouldn't ask again - the buyer
+  // only has to enter card details. Editing stays allowed (feature_flags
+  // below), so a typo is still fixable on the payment page.
+  body.customer = {
+    email: input.customer.email,
+    name: input.customer.name,
+    ...(input.customer.phone?.trim()
+      ? { phone_number: input.customer.phone.trim() }
+      : {}),
+  };
+
   // Dodo rejects customer_business_name unless a tax_id accompanies it, and a
   // tax_id in turn requires billing_address.country. Only send the trio when
   // the buyer actually gave a GSTIN; otherwise the company stays on our order.

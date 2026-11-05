@@ -30,9 +30,8 @@ type Props = {
   searchParams: Promise<{ paid?: string }>;
 };
 
-export default async function OrderPage({ params, searchParams }: Props) {
+export default async function OrderPage({ params }: Props) {
   const { orderNumber } = await params;
-  const { paid: returnedFromPayment } = await searchParams;
 
   let [order] = await db
     .select()
@@ -40,9 +39,12 @@ export default async function OrderPage({ params, searchParams }: Props) {
     .where(eq(orders.orderNumber, orderNumber));
   if (!order) notFound();
 
-  // Dodo redirects here after payment. If the webhook has not landed yet (or is
-  // not registered), confirm with Dodo directly so the buyer still gets keys.
-  if (order.status === "pending" && returnedFromPayment === "1" && order.stripeSessionId) {
+  // Dodo redirects here after payment. If the webhook has not landed yet (or the
+  // tunnel hostname moved and it 404'd), confirm with Dodo directly so the buyer
+  // still gets keys. Not gated on ?paid=1: however the buyer reached this page,
+  // it should tell the truth, and a genuinely abandoned attempt reconciles to
+  // failed instead of sitting pending forever.
+  if (order.status === "pending" && order.stripeSessionId) {
     try {
       const { getDodoCheckout } = await import("@/lib/dodo");
       const { markOrderPaid, markOrderFailed } = await import("@/lib/dodo-orders");
