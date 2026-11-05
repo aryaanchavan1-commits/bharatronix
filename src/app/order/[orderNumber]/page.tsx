@@ -45,10 +45,19 @@ export default async function OrderPage({ params, searchParams }: Props) {
   if (order.status === "pending" && returnedFromPayment === "1" && order.stripeSessionId) {
     try {
       const { getDodoCheckout } = await import("@/lib/dodo");
-      const { markOrderPaid } = await import("@/lib/dodo-orders");
+      const { markOrderPaid, markOrderFailed } = await import("@/lib/dodo-orders");
       const checkout = await getDodoCheckout(order.stripeSessionId);
-      if (checkout.paymentStatus === "succeeded" || checkout.paymentId) {
+      // Trust only the gateway's verdict. A failed attempt still carries a
+      // payment_id, so "has a payment id" is NOT proof of payment - that bug
+      // issued license keys for declined cards.
+      if (checkout.paymentStatus === "succeeded") {
         await markOrderPaid(order.orderNumber, { paymentId: checkout.paymentId });
+        [order] = await db
+          .select()
+          .from(orders)
+          .where(eq(orders.orderNumber, orderNumber));
+      } else if (checkout.paymentStatus === "failed") {
+        await markOrderFailed(order.orderNumber);
         [order] = await db
           .select()
           .from(orders)
