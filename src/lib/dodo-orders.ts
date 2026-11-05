@@ -30,7 +30,9 @@ export async function markOrderPaid(
       status: "paid",
       items,
       stripePaymentIntentId: payment.paymentId ?? order.stripePaymentIntentId,
-      invoiceNumber: `INV-${new Date().getFullYear()}-${order.orderNumber.slice(-6)}`,
+      // slice(-5), not -6: order numbers end in a dash (CRN-...-A2JD6), so
+      // -6 would keep the dash and render "INV-2026--A2JD6".
+      invoiceNumber: `INV-${new Date().getFullYear()}-${order.orderNumber.slice(-5)}`,
       retryCount: 0,
       nextRetryAt: null,
     })
