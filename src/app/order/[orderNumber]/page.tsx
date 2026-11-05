@@ -212,7 +212,23 @@ export default async function OrderPage({ params, searchParams }: Props) {
             {[
               { icon: Rocket, title: "Onboarding call", desc: "Our team will call you within 1 business day to plan your go-live." },
               { icon: Mail, title: "Check your inbox", desc: "Installers, keys and your GST invoice arrive once payment is captured." },
-              { icon: Headset, title: "Need help now?", desc: "Call +91 98000 00000 or write to support@bharatrontech.in." },
+              {
+                icon: Headset,
+                title: "Need help now?",
+                desc: (
+                  <>
+                    Call{" "}
+                    <a href="tel:+918857912586" className="text-saffron-400 hover:underline">
+                      +91 88579 12586
+                    </a>{" "}
+                    or write to{" "}
+                    <a href="mailto:aryaanchavan1@gmail.com" className="break-all text-saffron-400 hover:underline">
+                      aryaanchavan1@gmail.com
+                    </a>
+                    .
+                  </>
+                ),
+              },
             ].map((s) => (
               <div key={s.title} className="rounded-xl border border-white/10 bg-white/5 p-5">
                 <s.icon className="h-6 w-6 text-teal-glow" />

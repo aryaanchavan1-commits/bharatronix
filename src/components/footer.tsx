@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, Mail, MapPin, ShieldCheck } from "lucide-react";
+import { Boxes, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
 
 export function Footer() {
   return (
@@ -75,9 +75,17 @@ export function Footer() {
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron-400" />
                 Bharatrontech HQ, Hinjawadi Phase 2, Pune, Maharashtra 411057
               </li>
-              <li className="flex items-center gap-2.5">
-                <Mail className="h-4 w-4 shrink-0 text-saffron-400" />
-                sales@bharatrontech.in
+              <li>
+                <a href="tel:+918857912586" className="flex items-center gap-2.5 transition-colors hover:text-saffron-400">
+                  <Phone className="h-4 w-4 shrink-0 text-saffron-400" />
+                  +91 88579 12586
+                </a>
+              </li>
+              <li>
+                <a href="mailto:aryaanchavan1@gmail.com" className="flex items-center gap-2.5 break-all transition-colors hover:text-saffron-400">
+                  <Mail className="h-4 w-4 shrink-0 text-saffron-400" />
+                  aryaanchavan1@gmail.com
+                </a>
               </li>
             </ul>
           </div>
@@ -85,7 +93,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-xs sm:flex-row">
           <p>© {new Date().getFullYear()} Bharatrontech. All rights reserved.</p>
-          <p>Made in India · Secure checkout by Stripe</p>
+          <p>Made in India · Secure checkout by Dodo Payments</p>
         </div>
       </div>
     </footer>

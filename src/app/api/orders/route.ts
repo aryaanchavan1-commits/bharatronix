@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     const ipVelocityCount = ipVelocityResults[0] ? Number(ipVelocityResults[0].count) : 0;
     if (ipVelocityCount >= IP_VELOCITY_LIMIT) {
       return NextResponse.json(
-        { error: "Too many purchase attempts from this connection. Please contact support@bharatrontech.in." },
+        { error: "Too many purchase attempts from this connection. Please contact aryaanchavan1@gmail.com." },
         { status: 429 }
       );
     }

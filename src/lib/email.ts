@@ -18,5 +18,5 @@ export const emailTransport = hasEmailConfig()
     })
   : nodemailer.createTransport({ jsonTransport: true });
 
-export const emailFrom = process.env.AUTH_EMAIL_FROM ?? "noreply@example.com";
+export const emailFrom = process.env.AUTH_EMAIL_FROM ?? "aryaanchavan1@gmail.com";
 
