@@ -16,6 +16,9 @@ import {
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { formatINR } from "@/lib/format";
+import { getDodoCheckout } from "@/lib/dodo";
+import { getKelviqCheckout, KELVIQ_SESSION_PREFIX } from "@/lib/kelviq";
+import { markOrderFailed, markOrderPaid } from "@/lib/dodo-orders";
 import { Reveal } from "@/components/reveal";
 
 export const dynamic = "force-dynamic";
@@ -38,34 +41,50 @@ export default async function OrderPage({ params }: Props) {
     .where(eq(orders.orderNumber, orderNumber));
   if (!order) notFound();
 
-  // Dodo redirects here after payment. If the webhook has not landed yet (or the
-  // tunnel hostname moved and it 404'd), confirm with Dodo directly so the buyer
-  // still gets keys. Not gated on ?paid=1: however the buyer reached this page,
-  // it should tell the truth, and a genuinely abandoned attempt reconciles to
-  // failed instead of sitting pending forever.
+  // The gateway redirects here after payment. If the webhook has not landed yet
+  // (or the tunnel hostname moved and it 404'd), confirm with the gateway
+  // directly so the buyer still gets keys. Not gated on ?paid=1: however the
+  // buyer reached this page, it should tell the truth, and a genuinely abandoned
+  // attempt reconciles to failed instead of sitting pending forever.
   if (order.status === "pending" && order.stripeSessionId) {
     try {
-      const { getDodoCheckout } = await import("@/lib/dodo");
-      const { markOrderPaid, markOrderFailed } = await import("@/lib/dodo-orders");
-      const checkout = await getDodoCheckout(order.stripeSessionId);
+      const sessionId = order.stripeSessionId;
       // Trust only the gateway's verdict. A failed attempt still carries a
-      // payment_id, so "has a payment id" is NOT proof of payment - that bug
+      // payment id, so "has a payment id" is NOT proof of payment - that bug
       // issued license keys for declined cards.
-      if (checkout.paymentStatus === "succeeded") {
-        await markOrderPaid(order.orderNumber, {
-          paymentId: checkout.paymentId,
-          amount: checkout.totalAmount,
-          currency: checkout.currency,
-        });
-        [order] = await db
-          .select()
-          .from(orders)
-          .where(eq(orders.orderNumber, orderNumber));
-      } else if (
-        checkout.paymentStatus === "failed" ||
-        checkout.paymentStatus === "cancelled"
-      ) {
-        await markOrderFailed(order.orderNumber);
+      let status: "paid" | "failed" | "pending";
+      let payment: {
+        paymentId: string | null;
+        amount: number | null;
+        currency: string | null;
+      };
+
+      if (sessionId.startsWith(KELVIQ_SESSION_PREFIX)) {
+        const kelviq = await getKelviqCheckout(sessionId.slice(KELVIQ_SESSION_PREFIX.length));
+        status = kelviq.status;
+        payment = {
+          paymentId: kelviq.paymentId,
+          amount: kelviq.amountUnits,
+          currency: kelviq.currency,
+        };
+      } else {
+        const dodo = await getDodoCheckout(sessionId);
+        status =
+          dodo.paymentStatus === "succeeded"
+            ? "paid"
+            : dodo.paymentStatus === "failed" || dodo.paymentStatus === "cancelled"
+              ? "failed"
+              : "pending";
+        payment = {
+          paymentId: dodo.paymentId,
+          amount: dodo.totalAmount,
+          currency: dodo.currency,
+        };
+      }
+
+      if (status !== "pending") {
+        if (status === "paid") await markOrderPaid(order.orderNumber, payment);
+        else await markOrderFailed(order.orderNumber);
         [order] = await db
           .select()
           .from(orders)

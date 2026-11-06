@@ -19,6 +19,7 @@ import {
   getCurrentKeyVersion,
 } from "@/lib/fraud";
 import { createDodoCheckout } from "@/lib/dodo";
+import { createKelviqCheckout, KELVIQ_SESSION_PREFIX } from "@/lib/kelviq";
 
 export const dynamic = "force-dynamic";
 
@@ -186,39 +187,71 @@ export async function POST(req: NextRequest) {
     let checkoutUrl: string | null = null;
     let providerPaymentRef: string | null = null;
 
-    try {
-      const dodo = await createDodoCheckout({
-        orderNumber,
-        items: lineItems.map(({ slug, name, price, qty }) => ({ slug, name, price, qty })),
-        customer: {
-          name: customer.name.trim(),
-          email: customer.email.trim(),
-          phone: customer.phone ?? "",
-          company: customer.company ?? undefined,
-          address: customer.address ?? undefined,
-          gstin: gstin || undefined,
-        },
-        returnUrl: `${origin}/order/${orderNumber}?paid=1`,
-        cancelUrl: `${origin}/checkout?canceled=1`,
-        metadata: {
-          fraud_score: String(fraudScore.score),
-          fraud_risk_level: fraudScore.riskLevel,
-          geo_validated: geoResult.valid ? "true" : "false",
-          geo_risk_level: geoResult.riskLevel,
-          step_up_required: stepUpRequired ? "true" : "false",
-          customer_name: customer.name.trim(),
-          cart_items: JSON.stringify(lineItems.map(({ slug, qty }) => ({ slug, qty }))),
-        },
-      });
-      checkoutUrl = dodo.checkoutUrl;
-      providerPaymentRef = dodo.paymentId;
+    // Which merchant of record takes the money. Both are hosted checkouts that
+    // settle through the same path; switch with PAYMENT_PROVIDER=kelviq|dodo.
+    const provider = (process.env.PAYMENT_PROVIDER ?? "dodo").trim().toLowerCase();
 
-      await db
-        .update(orders)
-        .set({ stripeSessionId: dodo.sessionId })
-        .where(eq(orders.orderNumber, orderNumber));
-    } catch (dodoError) {
-      console.error("[orders:POST] dodo checkout creation failed", dodoError);
+    try {
+      if (provider === "kelviq") {
+        const kelviq = await createKelviqCheckout({
+          orderNumber,
+          items: lineItems.map(({ slug, name, price, qty }) => ({ slug, name, price, qty })),
+          total,
+          customer: {
+            name: customer.name.trim(),
+            email: customer.email.trim(),
+            phone: customer.phone ?? "",
+          },
+          returnUrl: `${origin}/order/${orderNumber}?paid=1`,
+          cancelUrl: `${origin}/checkout?canceled=1`,
+          metadata: {
+            fraud_score: String(fraudScore.score),
+            fraud_risk_level: fraudScore.riskLevel,
+            step_up_required: stepUpRequired ? "true" : "false",
+          },
+        });
+        checkoutUrl = kelviq.checkoutUrl;
+
+        // Prefixed so the order page knows which gateway to reconcile against.
+        // Bare session ids are Dodo's, from before Kelviq existed.
+        await db
+          .update(orders)
+          .set({ stripeSessionId: `${KELVIQ_SESSION_PREFIX}${kelviq.sessionId}` })
+          .where(eq(orders.orderNumber, orderNumber));
+      } else {
+        const dodo = await createDodoCheckout({
+          orderNumber,
+          items: lineItems.map(({ slug, name, price, qty }) => ({ slug, name, price, qty })),
+          customer: {
+            name: customer.name.trim(),
+            email: customer.email.trim(),
+            phone: customer.phone ?? "",
+            company: customer.company ?? undefined,
+            address: customer.address ?? undefined,
+            gstin: gstin || undefined,
+          },
+          returnUrl: `${origin}/order/${orderNumber}?paid=1`,
+          cancelUrl: `${origin}/checkout?canceled=1`,
+          metadata: {
+            fraud_score: String(fraudScore.score),
+            fraud_risk_level: fraudScore.riskLevel,
+            geo_validated: geoResult.valid ? "true" : "false",
+            geo_risk_level: geoResult.riskLevel,
+            step_up_required: stepUpRequired ? "true" : "false",
+            customer_name: customer.name.trim(),
+            cart_items: JSON.stringify(lineItems.map(({ slug, qty }) => ({ slug, qty }))),
+          },
+        });
+        checkoutUrl = dodo.checkoutUrl;
+        providerPaymentRef = dodo.paymentId;
+
+        await db
+          .update(orders)
+          .set({ stripeSessionId: dodo.sessionId })
+          .where(eq(orders.orderNumber, orderNumber));
+      }
+    } catch (checkoutError) {
+      console.error(`[orders:POST] ${provider} checkout creation failed`, checkoutError);
       // Don't leave a pending order behind for a checkout that was never
       // created: it can never be paid, it inflates the pending queue, and the
       // buyer's retry would add a second one.
@@ -228,13 +261,14 @@ export async function POST(req: NextRequest) {
         console.error("[orders:POST] orphan order cleanup failed", cleanupErr);
       }
       const msg =
-        dodoError instanceof Error ? dodoError.message : "Dodo checkout creation failed";
+        checkoutError instanceof Error ? checkoutError.message : `${provider} checkout creation failed`;
       // Surface configuration problems clearly so they can be fixed, rather than
       // a generic 500. Payment-process errors still get a 500.
       if (
         msg.includes("DODO_PAYMENTS_API_KEY") ||
         msg.includes("DODO_PRODUCT_IDS") ||
-        msg.includes("No Dodo product id configured")
+        msg.includes("No Dodo product id configured") ||
+        msg.includes("KELVIQ_SERVER_API_KEY")
       ) {
         return NextResponse.json(
           { error: msg },
