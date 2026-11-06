@@ -5,10 +5,16 @@ import { formatINR, generateLicenseKey } from "@/lib/format";
 
 /**
  * Decide whether a gateway payment actually covers the order before licenses
- * are issued. The floor is the pre-tax subtotal, not order.total: Dodo is the
- * merchant of record and charges its own GST on top, so a settled payment has
- * to at least cover the goods. ₹1 (100 paise) of slack absorbs paise rounding.
- * An unknown amount does not block settlement - only a known, too-small one.
+ * are issued. Every amount here is in RUPEES, the unit this database stores:
+ * product rows and order totals are rupees, and formatINR formats the stored
+ * number directly. Gateway amounts arrive in paise and are converted by the
+ * caller, never compared raw - a paise figure next to a rupee figure made this
+ * check a hundred times too lenient.
+ *
+ * The floor is the pre-tax subtotal, not order.total: Dodo is the merchant of
+ * record and charges its own GST on top, so a settled payment has to at least
+ * cover the goods. ₹1 of slack absorbs rounding. An unknown amount does not
+ * block settlement - only a known, too-small one.
  */
 export function paymentCoversOrder(
   order: { subtotal: number | null; total: number },
@@ -19,7 +25,7 @@ export function paymentCoversOrder(
   }
   if (payment.amount == null) return { ok: true };
   const goods = order.subtotal ?? order.total;
-  const floor = Math.max(0, goods - 100);
+  const floor = Math.max(0, goods - 1);
   return payment.amount >= floor
     ? { ok: true }
     : { ok: false, reason: `paid ${formatINR(payment.amount)} for goods worth ${formatINR(goods)}` };
@@ -41,7 +47,12 @@ export async function markOrderPaid(
     .limit(1);
   if (!order || order.status === "paid") return;
 
-  const covered = paymentCoversOrder(order, payment);
+  // Dodo reports amounts in paise. Convert at the boundary so the guard compares
+  // like with like and payments.amount stays in the unit the column already
+  // holds (this insert used to record paise next to rupee rows).
+  const paidAmount = payment.amount == null ? null : Math.round(payment.amount) / 100;
+
+  const covered = paymentCoversOrder(order, { ...payment, amount: paidAmount });
   if (!covered.ok) {
     // Money we did not expect: leave the order pending for a human instead of
     // minting licenses against it.
@@ -79,7 +90,7 @@ export async function markOrderPaid(
     .set({
       status: "captured",
       providerPaymentRef: payment.paymentId ?? null,
-      amount: payment.amount ?? order.total,
+      amount: paidAmount ?? order.total,
       currency: (payment.currency ?? "inr").toLowerCase(),
     })
     .where(eq(payments.orderId, String(order.id)));

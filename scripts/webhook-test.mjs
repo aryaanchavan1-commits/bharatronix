@@ -69,25 +69,36 @@ if (process.env.ORDER_NUMBER) {
   assert.equal(before.status, "pending", `test order must be pending, it is "${before.status}"`);
   console.log(`underpayment check on ${orderNumber} (total ${before.total} paise)`);
 
-  const underpaid = JSON.stringify({
-    type: "payment.succeeded",
-    data: {
-      payment_id: "pay_CHECK_UNDERPAID",
-      total_amount: 1,
-      currency: "INR",
-      metadata: { order_number: orderNumber },
-    },
-  });
-  const res = await post(underpaid);
-  assert.equal(res.status, 200, "webhook must acknowledge a signed event");
+  // The order API reports rupees; Dodo's total_amount is paise. Both cases below
+  // must be refused. The half-total case is the one that catches a unit mix-up:
+  // with the amount compared in mixed units it looks like a huge overpayment.
+  const halfTotalPaise = Math.round(before.total * 50);
+  const cases = [
+    { label: "1 paise", amount: 1 },
+    { label: `half the total (${halfTotalPaise} paise)`, amount: halfTotalPaise },
+  ];
 
-  const after = await readOrder();
-  assert.equal(
-    after.status,
-    "pending",
-    "GUARD FAILED: a 1-paise payment must not mark the order paid or issue keys"
-  );
-  console.log(`underpaid payment rejected -> order still ${after.status}: OK`);
+  for (const testCase of cases) {
+    const underpaid = JSON.stringify({
+      type: "payment.succeeded",
+      data: {
+        payment_id: `pay_CHECK_UNDERPAID_${testCase.amount}`,
+        total_amount: testCase.amount,
+        currency: "INR",
+        metadata: { order_number: orderNumber },
+      },
+    });
+    const res = await post(underpaid);
+    assert.equal(res.status, 200, "webhook must acknowledge a signed event");
+
+    const after = await readOrder();
+    assert.equal(
+      after.status,
+      "pending",
+      `GUARD FAILED: ${testCase.label} must not mark the order paid or issue keys`
+    );
+    console.log(`  ${testCase.label} -> refused, order still ${after.status}: OK`);
+  }
 } else {
   console.log("SKIP underpayment guard check (set ORDER_NUMBER to an abandoned test order)");
 }
