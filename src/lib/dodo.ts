@@ -200,15 +200,32 @@ export async function verifyDodoWebhook(
   });
 }
 
-/** Look up a checkout session's payment state. Used to confirm a payment on return. */
-export async function getDodoCheckout(
-  sessionId: string
-): Promise<{ paymentId: string | null; paymentStatus: string | null }> {
+/**
+ * Look up a checkout session's payment state. Used to confirm a payment on
+ * return. The amount comes back too so the settlement guard can check it, but
+ * it is allowed to be null - an unknown amount must not block a real payment.
+ */
+export async function getDodoCheckout(sessionId: string): Promise<{
+  paymentId: string | null;
+  paymentStatus: string | null;
+  totalAmount: number | null;
+  currency: string | null;
+}> {
   const res = await fetch(`${BASE_URL}/checkouts/${encodeURIComponent(sessionId)}`, {
     headers: { Authorization: `Bearer ${apiKey()}` },
     cache: "no-store",
   });
   if (!res.ok) throw new Error(`Dodo checkout lookup failed (${res.status})`);
-  const data = (await res.json()) as { payment_id?: string | null; payment_status?: string | null };
-  return { paymentId: data.payment_id ?? null, paymentStatus: data.payment_status ?? null };
+  const data = (await res.json()) as {
+    payment_id?: string | null;
+    payment_status?: string | null;
+    total_amount?: number | null;
+    currency?: string | null;
+  };
+  return {
+    paymentId: data.payment_id ?? null,
+    paymentStatus: data.payment_status ?? null,
+    totalAmount: data.total_amount ?? null,
+    currency: data.currency ?? null,
+  };
 }

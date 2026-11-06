@@ -219,6 +219,14 @@ export async function POST(req: NextRequest) {
         .where(eq(orders.orderNumber, orderNumber));
     } catch (dodoError) {
       console.error("[orders:POST] dodo checkout creation failed", dodoError);
+      // Don't leave a pending order behind for a checkout that was never
+      // created: it can never be paid, it inflates the pending queue, and the
+      // buyer's retry would add a second one.
+      try {
+        await db.delete(orders).where(eq(orders.orderNumber, orderNumber));
+      } catch (cleanupErr) {
+        console.error("[orders:POST] orphan order cleanup failed", cleanupErr);
+      }
       const msg =
         dodoError instanceof Error ? dodoError.message : "Dodo checkout creation failed";
       // Surface configuration problems clearly so they can be fixed, rather than

@@ -10,13 +10,13 @@ import {
   Copy,
   Headset,
   KeyRound,
-  Mail,
   Rocket,
   XCircle,
 } from "lucide-react";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { formatINR } from "@/lib/format";
+import { hasEmailConfig } from "@/lib/email";
 import { Reveal } from "@/components/reveal";
 
 export const dynamic = "force-dynamic";
@@ -53,12 +53,19 @@ export default async function OrderPage({ params }: Props) {
       // payment_id, so "has a payment id" is NOT proof of payment - that bug
       // issued license keys for declined cards.
       if (checkout.paymentStatus === "succeeded") {
-        await markOrderPaid(order.orderNumber, { paymentId: checkout.paymentId });
+        await markOrderPaid(order.orderNumber, {
+          paymentId: checkout.paymentId,
+          amount: checkout.totalAmount,
+          currency: checkout.currency,
+        });
         [order] = await db
           .select()
           .from(orders)
           .where(eq(orders.orderNumber, orderNumber));
-      } else if (checkout.paymentStatus === "failed") {
+      } else if (
+        checkout.paymentStatus === "failed" ||
+        checkout.paymentStatus === "cancelled"
+      ) {
         await markOrderFailed(order.orderNumber);
         [order] = await db
           .select()
@@ -121,18 +128,20 @@ export default async function OrderPage({ params }: Props) {
               </p>
             ) : authorized ? (
               <p className="mt-3 max-w-xl text-slate-300">
-                Your card is authorized on Stripe — pending our standard review window before the
-                charge is captured. You&apos;ll be redirected here automatically; keys unlock as soon
-                as capture completes.
+                Your bank has authorized the payment and the charge is settling. Refresh this page in
+                a moment — keys unlock automatically once the payment confirms.
               </p>
             ) : order.status === "pending" ? (
               <p className="mt-3 max-w-xl text-slate-300">
-                Your payment didn&apos;t go through yet. We automatically re-issue a secure payment
-                link with our retry schedule (1h / 4h / 12h). You can also try again from{" "}
+                Nothing has been charged — this payment simply didn&apos;t complete. Try again from{" "}
                 <Link href="/checkout" className="font-bold text-saffron-400 underline">
                   checkout
                 </Link>
-                .
+                , or call us on{" "}
+                <a href="tel:+918857912586" className="text-saffron-400 hover:underline">
+                  +91 88579 12586
+                </a>{" "}
+                if the card keeps failing.
               </p>
             ) : order.status === "refunded" ? (
               <p className="mt-3 max-w-xl text-slate-300">
@@ -162,8 +171,15 @@ export default async function OrderPage({ params }: Props) {
             </h2>
             {paid ? (
               <p className="mt-1 text-sm text-slate-400">
-                Also sent to <span className="font-bold text-slate-200">{order.email}</span>. Enter a key in the
-                installer to activate each license.
+                {hasEmailConfig() ? (
+                  <>
+                    Also emailed to{" "}
+                    <span className="font-bold text-slate-200">{order.email}</span>.{" "}
+                  </>
+                ) : (
+                  <>Copy these keys now — this page is the only place they appear. </>
+                )}
+                Enter one key per installation to activate.
               </p>
             ) : (
               <p className="mt-1 text-sm text-slate-400">
@@ -213,7 +229,7 @@ export default async function OrderPage({ params }: Props) {
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {[
               { icon: Rocket, title: "Onboarding call", desc: "Our team will call you within 1 business day to plan your go-live." },
-              { icon: Mail, title: "Check your inbox", desc: "Installers, keys and your GST invoice arrive once payment is captured." },
+              { icon: KeyRound, title: "Keep your keys", desc: "Save the keys above somewhere safe — one key activates one installation." },
               {
                 icon: Headset,
                 title: "Need help now?",

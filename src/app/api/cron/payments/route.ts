@@ -13,7 +13,9 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
-  if (secret && auth !== `Bearer ${secret}`) {
+  // Fail closed. The old `secret &&` test made this endpoint anonymous whenever
+  // CRON_SECRET was unset, and one GET can flip payments_paused for the shop.
+  if (!secret || auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -126,8 +128,12 @@ async function declineRateMonitor() {
     .from(payments)
     .where(sql`${payments.createdAt} >= date_trunc('day', now())`);
 
+  // A ratio over a handful of attempts is noise, not a signal: at this order
+  // volume one decline reads as 100% and would pause a perfectly healthy shop.
+  // Require a sample worth believing before tripping the breaker.
+  const MIN_SAMPLE = 20;
   const rate = total > 0 ? declined / total : 0;
-  const pause = rate > 0.05;
+  const pause = total >= MIN_SAMPLE && rate > 0.05;
 
   if (total > 0) {
     await db

@@ -52,4 +52,44 @@ const paid = await post(succeeded);
 console.log(`valid signature, payment.succeeded (no such order) -> ${paid.status}`);
 assert.equal(paid.status, 200);
 
+// Optional: prove the settlement guard refuses an underpayment. Set
+// ORDER_NUMBER to an ABANDONED test order (never a customer's) and the script
+// sends a validly signed payment.succeeded for 1 paise, then asserts the order
+// is still pending. If the guard is ever removed this fails loudly instead of
+// quietly handing out licenses for money that never arrived.
+if (process.env.ORDER_NUMBER) {
+  const orderNumber = process.env.ORDER_NUMBER;
+  const readOrder = async () => {
+    const res = await fetch(`${base}/api/orders?orderNumber=${encodeURIComponent(orderNumber)}`);
+    assert.equal(res.status, 200, `order ${orderNumber} not found on ${base}`);
+    return res.json();
+  };
+
+  const before = await readOrder();
+  assert.equal(before.status, "pending", `test order must be pending, it is "${before.status}"`);
+  console.log(`underpayment check on ${orderNumber} (total ${before.total} paise)`);
+
+  const underpaid = JSON.stringify({
+    type: "payment.succeeded",
+    data: {
+      payment_id: "pay_CHECK_UNDERPAID",
+      total_amount: 1,
+      currency: "INR",
+      metadata: { order_number: orderNumber },
+    },
+  });
+  const res = await post(underpaid);
+  assert.equal(res.status, 200, "webhook must acknowledge a signed event");
+
+  const after = await readOrder();
+  assert.equal(
+    after.status,
+    "pending",
+    "GUARD FAILED: a 1-paise payment must not mark the order paid or issue keys"
+  );
+  console.log(`underpaid payment rejected -> order still ${after.status}: OK`);
+} else {
+  console.log("SKIP underpayment guard check (set ORDER_NUMBER to an abandoned test order)");
+}
+
 console.log("OK - secret is valid, signatures verify, forgeries rejected");
