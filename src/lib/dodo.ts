@@ -111,13 +111,23 @@ export async function createDodoCheckout(input: CreateCheckoutInput): Promise<Do
       : {}),
   };
 
+  // Tell Dodo this is a domestic INR sale to India. Without it the transaction
+  // was presented as cross-border and Indian cards came back
+  // PAYMENT_METHOD_UNSUPPORTED ("this payment method isn't supported for this
+  // transaction") at charge time - real buyers, real cards, no sale.
+  body.billing_currency = "INR";
+  body.billing_address = { country: "IN" };
+  // Cards first, as the store sells to businesses with corporate cards. UPI and
+  // Apple Pay are offered alongside because a buyer without an international
+  // card should still be able to pay, not as the primary route.
+  body.allowed_payment_method_types = ["credit", "debit", "upi_intent", "apple_pay"];
+
   // Dodo rejects customer_business_name unless a tax_id accompanies it, and a
-  // tax_id in turn requires billing_address.country. Only send the trio when
-  // the buyer actually gave a GSTIN; otherwise the company stays on our order.
+  // tax_id in turn requires billing_address.country (now always set above).
+  // Only send the pair when the buyer actually gave a GSTIN.
   const gstin = input.customer.gstin?.trim();
   if (gstin) {
     body.tax_id = gstin;
-    body.billing_address = { country: "IN" };
     if (input.customer.company) body.customer_business_name = input.customer.company;
   }
 

@@ -37,7 +37,11 @@ export const HIGH_RISK_COUNTRIES = [
   "RU",
 ];
 
-export const IP_VELOCITY_LIMIT = 3;
+// Checkout attempts allowed from one IP per 24h. It counts attempts, not sales,
+// so an office, a hostel or anyone behind carrier NAT hits the wall fast - at 3
+// a shop full of legitimate buyers was locked out by their own retries. The
+// serious controls are the card network, the fraud score and the amount guard.
+export const IP_VELOCITY_LIMIT = 20;
 
 export const RETRY_DELAYS_MS = [1, 4, 12].map((h) => h * 60 * 60 * 1000);
 

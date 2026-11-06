@@ -17,7 +17,7 @@ import { useCart } from "@/components/cart-provider";
 import { formatINR } from "@/lib/format";
 
 export default function CheckoutPage() {
-  const { items, subtotal, clear } = useCart();
+  const { items, subtotal } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -56,8 +56,10 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Order failed. Please try again.");
       // Dodo hosts the payment page: card entry, 3DS and CVV checks happen there.
+      // The cart is deliberately NOT cleared yet - a declined card sends the
+      // buyer straight back here, and losing their basket at that moment turns a
+      // retry into a lost sale. It is cleared once the order page shows paid.
       if (data.checkoutUrl) {
-        clear();
         window.location.href = data.checkoutUrl;
         return;
       }
@@ -164,6 +166,10 @@ export default function CheckoutPage() {
                 </>
               )}
             </button>
+            <p className="text-center text-xs font-semibold text-slate-500">
+              Card declined or changed your mind? Nothing is charged and your cart stays here,
+              so you can retry with another card.
+            </p>
           </div>
 
           <aside className="h-fit rounded-xl border border-slate-200 bg-white p-6 shadow-lg shadow-ink-900/5 lg:sticky lg:top-24">

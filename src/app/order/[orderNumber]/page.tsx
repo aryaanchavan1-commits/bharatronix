@@ -20,6 +20,7 @@ import { getDodoCheckout } from "@/lib/dodo";
 import { getKelviqCheckout, KELVIQ_SESSION_PREFIX } from "@/lib/kelviq";
 import { markOrderFailed, markOrderPaid } from "@/lib/dodo-orders";
 import { Reveal } from "@/components/reveal";
+import { ClearCart } from "@/components/clear-cart";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +102,7 @@ export default async function OrderPage({ params }: Props) {
 
   return (
     <section className="relative overflow-hidden bg-ink-950 py-16 text-white">
+      {paid && <ClearCart />}
       <div className="bg-blueprint absolute inset-0" />
       <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-1/2 rounded-full bg-teal-glow/15 blur-[120px]" />
       <div className="relative mx-auto max-w-4xl px-4 sm:px-6">
