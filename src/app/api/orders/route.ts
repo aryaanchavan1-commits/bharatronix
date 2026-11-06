@@ -20,6 +20,7 @@ import {
 } from "@/lib/fraud";
 import { createDodoCheckout } from "@/lib/dodo";
 import { createKelviqCheckout, KELVIQ_SESSION_PREFIX } from "@/lib/kelviq";
+import { normalizePhone } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
@@ -117,6 +118,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Same story as the GSTIN: a formatting quirk would otherwise reach the
+    // gateway as a 400 and kill the checkout with a meaningless "retry" message.
+    const phone = normalizePhone(customer.phone);
+    if (phone === null) {
+      return NextResponse.json(
+        {
+          error:
+            "That phone number doesn't look right. Use 10 digits, or the full number with its country code.",
+        },
+        { status: 400 }
+      );
+    }
+
     const dbProducts = await db
       .select()
       .from(products)
@@ -165,7 +179,7 @@ export async function POST(req: NextRequest) {
       orderNumber,
       customerName: customer.name.trim(),
       email: customer.email.trim(),
-      phone: customer.phone ?? "",
+      phone,
       company: customer.company ?? "",
       address: customer.address ?? "",
       fingerprint: clientIp,
@@ -200,7 +214,7 @@ export async function POST(req: NextRequest) {
           customer: {
             name: customer.name.trim(),
             email: customer.email.trim(),
-            phone: customer.phone ?? "",
+            phone,
           },
           returnUrl: `${origin}/order/${orderNumber}?paid=1`,
           cancelUrl: `${origin}/checkout?canceled=1`,
@@ -225,7 +239,7 @@ export async function POST(req: NextRequest) {
           customer: {
             name: customer.name.trim(),
             email: customer.email.trim(),
-            phone: customer.phone ?? "",
+            phone,
             company: customer.company ?? undefined,
             address: customer.address ?? undefined,
             gstin: gstin || undefined,
