@@ -67,7 +67,7 @@ if (process.env.ORDER_NUMBER) {
 
   const before = await readOrder();
   assert.equal(before.status, "pending", `test order must be pending, it is "${before.status}"`);
-  console.log(`underpayment check on ${orderNumber} (total ${before.total} paise)`);
+  console.log(`underpayment check on ${orderNumber} (order total ${before.total} rupees)`);
 
   // The order API reports rupees; Dodo's total_amount is paise. Both cases below
   // must be refused. The half-total case is the one that catches a unit mix-up:

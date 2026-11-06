@@ -175,8 +175,8 @@ export default async function OrderPage({ params }: Props) {
               </p>
             ) : (
               <p className="mt-1 text-sm text-slate-400">
-                License keys are issued once payment is captured. This page updates automatically —
-                we&apos;ll also email you at{" "}
+                License keys are issued the moment payment is captured. Refresh this page then —
+                keys appear here for{" "}
                 <span className="font-bold text-slate-200">{order.email}</span>.
               </p>
             )}

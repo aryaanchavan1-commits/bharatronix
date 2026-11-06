@@ -310,7 +310,12 @@ export async function GET(req: NextRequest) {
     }
 
     const [order] = await db
-      .select()
+      .select({
+        orderNumber: orders.orderNumber,
+        status: orders.status,
+        createdAt: orders.createdAt,
+        total: orders.total,
+      })
       .from(orders)
       .where(eq(orders.orderNumber, orderNumber))
       .limit(1);
@@ -319,68 +324,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    const payments_list = await db
-      .select()
-      .from(payments)
-      .where(eq(payments.orderId, String(order.id)));
-
-    const firstPayment = payments_list[0];
-    if (!firstPayment) {
-      return NextResponse.json({
-        orderNumber: order.orderNumber,
-        status: order.status,
-        createdAt: order.createdAt,
-        total: order.total,
-        items: order.items,
-        customer: {
-          name: order.customerName,
-          email: order.email,
-          phone: order.phone,
-          company: order.company,
-          address: order.address,
-        },
-        fraudData: {
-          ipEncrypted: !!order.ipEncrypted,
-          userAgentEncrypted: !!order.userAgentEncrypted,
-          encryptionKeyVersion: order.encryptionKeyVersion,
-          decryptedData: null,
-        },
-        payment: null,
-      });
-    }
-
-    return NextResponse.json({
-      orderNumber: order.orderNumber,
-      status: order.status,
-      createdAt: order.createdAt,
-      total: order.total,
-      items: order.items,
-      customer: {
-        name: order.customerName,
-        email: order.email,
-        phone: order.phone,
-        company: order.company,
-        address: order.address,
-      },
-      fraudData: {
-        ipEncrypted: !!order.ipEncrypted,
-        userAgentEncrypted: !!order.userAgentEncrypted,
-        encryptionKeyVersion: order.encryptionKeyVersion,
-        decryptedData: null,
-      },
-      payment: firstPayment
-        ? {
-            status: firstPayment.status,
-            amount: firstPayment.amount,
-            providerPaymentRef: firstPayment.providerPaymentRef,
-            fraudScore: firstPayment.fraudScore,
-            stepUpRequired: firstPayment.stepUpRequired,
-            geoValidated: firstPayment.geoValidated,
-            geoRiskLevel: firstPayment.geoRiskLevel,
-            isFraudulent: firstPayment.isFraudulent,
-          }
-        : null,
-    });
+    // Public endpoint, and the order number is the only credential: it embeds a
+    // millisecond timestamp next to five random characters, so it is enumerable.
+    // Customer PII and the issued license keys therefore stay out of this
+    // response - the buyer reads those on their own order page.
+    return NextResponse.json(order);
   } catch (err) {
     console.error("[orders:GET]", err);
     return NextResponse.json(
