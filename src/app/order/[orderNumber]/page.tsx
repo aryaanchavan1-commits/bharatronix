@@ -16,7 +16,6 @@ import {
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { formatINR } from "@/lib/format";
-import { hasEmailConfig } from "@/lib/email";
 import { Reveal } from "@/components/reveal";
 
 export const dynamic = "force-dynamic";
@@ -171,15 +170,8 @@ export default async function OrderPage({ params }: Props) {
             </h2>
             {paid ? (
               <p className="mt-1 text-sm text-slate-400">
-                {hasEmailConfig() ? (
-                  <>
-                    Also emailed to{" "}
-                    <span className="font-bold text-slate-200">{order.email}</span>.{" "}
-                  </>
-                ) : (
-                  <>Copy these keys now — this page is the only place they appear. </>
-                )}
-                Enter one key per installation to activate.
+                Copy these keys now — this page is the only place they appear. Enter one key per
+                installation to activate.
               </p>
             ) : (
               <p className="mt-1 text-sm text-slate-400">

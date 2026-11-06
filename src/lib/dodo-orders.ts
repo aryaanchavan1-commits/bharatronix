@@ -2,7 +2,6 @@ import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { orders, payments, type OrderLineItem } from "@/db/schema";
 import { formatINR, generateLicenseKey } from "@/lib/format";
-import { hasEmailConfig, sendMail } from "@/lib/email";
 
 /**
  * Decide whether a gateway payment actually covers the order before licenses
@@ -85,42 +84,6 @@ export async function markOrderPaid(
     })
     .where(eq(payments.orderId, String(order.id)));
 
-  await sendOrderConfirmation({
-    orderNumber: order.orderNumber,
-    email: order.email,
-    customerName: order.customerName,
-    items,
-    total: payment.amount ?? order.total,
-  });
-}
-
-/**
- * Best effort by design: the payment is already captured, so a mail failure
- * must not bubble up and make the webhook retry a payment that succeeded.
- * Silent no-op until SMTP credentials exist.
- */
-async function sendOrderConfirmation(input: {
-  orderNumber: string;
-  email: string;
-  customerName: string;
-  items: OrderLineItem[];
-  total: number;
-}): Promise<void> {
-  if (!hasEmailConfig()) return;
-  const keys = input.items
-    .map((it) => `  ${it.name}: ${it.licenseKey ?? "(on its way)"}`)
-    .join("\n");
-  const text =
-    `Hello ${input.customerName},\n\n` +
-    `We received ${formatINR(input.total)} for order ${input.orderNumber}.\n\n` +
-    `Your license keys:\n${keys}\n\n` +
-    `One key activates one installation - keep this email safe.\n\n` +
-    `Bharatrontech · +91 88579 12586 · aryaanchavan1@gmail.com\n`;
-  await sendMail({
-    to: input.email,
-    subject: `Your Bharatrontech license keys - ${input.orderNumber}`,
-    text,
-  });
 }
 
 export async function markOrderFailed(orderNumber: string): Promise<void> {
